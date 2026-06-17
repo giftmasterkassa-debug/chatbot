@@ -1,0 +1,21 @@
+{
+  "name": "instagram-auto-reply-bot",
+  "version": "1.0.0",
+  "description": "Instagram uchun avtomat javob beruvchi chatbot (O'zbek + Rus). O'z serveringizda ishlaydi.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node test/local-test.js"
+  },
+  "keywords": ["instagram", "chatbot", "webhook", "messenger", "uzbek"],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
