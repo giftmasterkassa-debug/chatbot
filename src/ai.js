@@ -169,4 +169,35 @@ async function extractQuantityAndBudget(history, lang, current = {}) {
   return callTool(instructions, history, tool);
 }
 
-module.exports = { extractNameAndProduct, extractQuantityAndDeadline, extractQuantityAndBudget };
+// 2c-qadam: ko'p variantli mahsulotdan keyin alohida so'raladigan muddatni tekshiradi.
+// Mijoz javob o'rniga savol bersa yoki aloqasiz narsa yozsa, buni aniqlab qayta so'raydi.
+async function extractDeadline(history, lang) {
+  const instructions = [
+    "Sen Instagram do'koni uchun avtomat buyurtma yordamchisisan.",
+    "Mijozdan mahsulot qachongacha tayyor/yetkazib berilishi kerakligini (muddatni) so'rading.",
+    "Mijozning so'nggi xabarini tahlil qil: agar u haqiqatan muddat haqida javob bo'lsa (masalan 'ertaga', '3 kun ichida', 'tezroq kerak'), deadline maydoniga shu javobni qisqa matn sifatida yoz va needs_clarification ni false qil.",
+    "Agar mijoz javob o'rniga SAVOL bersa (masalan 'odatda qancha vaqt ketadi?', 'tez tayyor bo'ladimi?') yoki muddatga aloqasi yo'q narsa yozsa - needs_clarification ni true qil. clarification_question maydoniga, agar mijoz savol bergan bo'lsa, avval shu savolga umumiy/qisqa javob ber (aniq raqam to'qib chiqarma, masalan 'bu odatda mahsulot va miqdorga bog'liq, operatorimiz aniq aytadi' kabi), so'ng mijozdan o'ziga qachongacha kerak ekanini qayta so'ra.",
+    `Javobni ${langName(lang)} tilida yoz. Faqat extract_deadline tool orqali javob ber, undan tashqari hech qanday matn yozma.`,
+  ].join(" ");
+
+  const tool = {
+    type: "function",
+    name: "extract_deadline",
+    description: "Mijoz xabaridan muddatni ajratib oladi, javob o'rniga savol bergan bo'lsa aniqlashtiradi.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        deadline: { type: ["string", "null"], description: "Mijoz aytgan muddat, masalan 'ertaga' yoki '3 kun ichida'" },
+        needs_clarification: { type: "boolean" },
+        clarification_question: { type: ["string", "null"] },
+      },
+      required: ["deadline", "needs_clarification", "clarification_question"],
+      additionalProperties: false,
+    },
+  };
+
+  return callTool(instructions, history, tool);
+}
+
+module.exports = { extractNameAndProduct, extractQuantityAndDeadline, extractQuantityAndBudget, extractDeadline };
