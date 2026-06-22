@@ -13,7 +13,7 @@
 
 const config = require("./config");
 const buildResponses = require("./responses");
-const { extractNameAndProduct, extractQuantityAndDeadline, extractQuantityAndBudget } = require("./ai");
+const { extractNameAndProduct, extractQuantityAndDeadline, extractQuantityAndBudget, extractDeadline } = require("./ai");
 
 const responses = buildResponses(config.business);
 const sessions = new Map(); // senderId -> { step, lang, data, history, variants, updatedAt }
@@ -336,6 +336,7 @@ async function handleMessage(senderId, text, lang) {
     else session.data.minQtyRequired = Math.min(...variant.tiers.map((t) => t.minQty));
 
     session.step = "deadline";
+    session.history = [];
     const resp = { text: T[lang].recommend(variant, price) + T[lang].askDeadline, quickReplies: [cancelBtn(lang)] };
     if (variant.image) resp.image = variant.image;
     return resp;
@@ -343,11 +344,19 @@ async function handleMessage(senderId, text, lang) {
 
   // --- 2c-qadam: muddat (2b-qadamdan keyin, variant aniqlangandan so'ng) ---
   if (session.step === "deadline") {
-    const deadline = (text || "").trim();
-    if (!deadline) {
-      return { text: T[lang].askDeadline, quickReplies: [cancelBtn(lang)] };
+    session.history.push({ role: "user", content: text });
+
+    const result = await extractDeadline(session.history, lang);
+    if (!result) {
+      // AI javob bermadi - mijoz yozganini xom holatda qabul qilamiz.
+      session.data.deadline = (text || "").trim() || "aniqlanmagan";
+    } else if (result.needs_clarification || !result.deadline) {
+      session.history.push({ role: "assistant", content: result.clarification_question || T[lang].askDeadline });
+      return { text: result.clarification_question || T[lang].askDeadline, quickReplies: [cancelBtn(lang)] };
+    } else {
+      session.data.deadline = result.deadline;
     }
-    session.data.deadline = deadline;
+
     session.step = "phone";
     return { text: T[lang].askPhone, quickReplies: [cancelBtn(lang)] };
   }
