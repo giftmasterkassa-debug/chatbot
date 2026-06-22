@@ -60,13 +60,14 @@ async function callTool(instructions, history, tool) {
 // 1-qadam: ism va mahsulotni ajratib olish (kerak bo'lsa aniqlashtirib so'raydi).
 // history: shu bosqichdagi suhbat tarixi. current: { name, product } - ma'lum qiymatlar.
 async function extractNameAndProduct(history, lang, current = {}) {
-  const productsHint = config.ai.products.length
-    ? `Do'konda mavjud mahsulotlar ro'yxati: ${config.ai.products.join(", ")}. ` +
-      `Mijoz mahsulot nomini xato, qisqartirib yoki boshqacha yozgan bo'lsa ham, ` +
-      `shu ro'yxatdagi eng mos nomga moslab, savol orqali tasdiqlashni so'ra.`
-    : `Do'konning aniq mahsulotlar ro'yxati berilmagan. Mijoz aytgan mahsulot nomini ` +
-      `tabiiy tilda tushunib oling; agar imlosi yoki ma'nosi noaniq/chala bo'lsa, ` +
-      `qaysi mahsulotni nazarda tutganini qisqa savol bilan aniqlashtiring.`;
+  const catalogNames = [...new Set(config.catalog.map((p) => p.name))];
+  const productsHint = catalogNames.length
+    ? `Do'konda sotiladigan mahsulotlar FAQAT shu ro'yxatdagilar: ${catalogNames.join(", ")}. ` +
+      `Mijoz so'ragan narsani shu ro'yxat bilan solishtir: ` +
+      `1) Agar mijoz ro'yxatdagi biror mahsulotni xato, qisqartirib, imlo xatosi bilan yoki boshqacha nom bilan yozgan bo'lsa (lekin aslida shu mahsulotni nazarda tutgani aniq bo'lsa) - product maydoniga ro'yxatdagi nomni AYNAN, harfma-harf, o'zgartirmasdan yoz, va qisqa savol bilan tasdiqlashni so'ra. ` +
+      `2) Agar mijoz so'ragan narsa ro'yxatdagi HECH BIR mahsulotga mos kelmasa (ya'ni haqiqatan do'konda mavjud bo'lmagan, butunlay boshqa narsa) - bu holda product maydonini null qoldir, needs_clarification=true qil, va clarification_question ichida: avval so'ralgan narsa hozircha mavjud emasligini muloyim ayt, so'ng do'kondagi mavjud mahsulotlar ro'yxatini sanab o't va ulardan birini tanlashni so'ra.`
+    : `Do'konning aniq mahsulotlar ro'yxati berilmagan. Mijoz aytgan mahsulot nomini tabiiy tilda tushunib oling; ` +
+      `agar imlosi yoki ma'nosi noaniq/chala bo'lsa, qaysi mahsulotni nazarda tutganini qisqa savol bilan aniqlashtiring.`;
 
   const instructions = [
     "Sen Instagram do'koni uchun avtomat buyurtma yordamchisisan.",
@@ -134,4 +135,38 @@ async function extractQuantityAndDeadline(history, lang, current = {}) {
   return callTool(instructions, history, tool);
 }
 
-module.exports = { extractNameAndProduct, extractQuantityAndDeadline };
+// 2b-qadam: bir nomda bir necha xil narxdagi variant bo'lganda - soni va taxminiy
+// narx/byudjetni ajratib olish (shularga qarab eng mos variant tavsiya qilinadi).
+async function extractQuantityAndBudget(history, lang, current = {}) {
+  const instructions = [
+    "Sen Instagram do'koni uchun avtomat buyurtma yordamchisisan.",
+    "Vazifang: mijoz xabar(lar)idan kerakli mahsulot sonini (necha dona) va u rozi bo'lgan taxminiy narxni (1 donaga necha so'm, yoki 'arzon'/'qimmat' kabi tabiiy ifodani) ajratib olish.",
+    `Hozircha ma'lum bo'lgan ma'lumot: soni = ${current.quantity || "noma'lum"}, narx/byudjet = ${current.budget || "noma'lum"}.`,
+    `Agar soni hali noma'lum bo'lsa, needs_clarification ni true qil va clarification_question maydoniga ${langName(lang)} tilida qisqa savol yoz.`,
+    "Narx/byudjet haqida mijoz aniq raqam aytmasa ham bo'ladi (masalan 'arzonrog'i', 'sifatlisi') - buni ham qabul qil, faqat soni albatta kerak.",
+    "Agar soni aniq bo'lsa, needs_clarification ni false qil (narx aniq aytilmagan bo'lsa ham). Soni va narx/byudjetni mijoz tushunarli yozgandek qisqa matn sifatida qaytar.",
+    "Faqat extract_order_budget tool orqali javob ber, undan tashqari hech qanday matn yozma.",
+  ].join(" ");
+
+  const tool = {
+    type: "function",
+    name: "extract_order_budget",
+    description: "Mijoz xabaridan soni va taxminiy narx/byudjetni ajratib oladi, kerak bo'lsa aniqlashtiruvchi savol qaytaradi.",
+    strict: true,
+    parameters: {
+      type: "object",
+      properties: {
+        quantity: { type: ["string", "null"], description: "Kerakli mahsulot soni, masalan '100 dona'" },
+        budget: { type: ["string", "null"], description: "Mijoz rozi bo'lgan taxminiy narx, masalan '10000 so'mgacha', 'arzonrog'i', '5000 atrofida'" },
+        needs_clarification: { type: "boolean" },
+        clarification_question: { type: ["string", "null"] },
+      },
+      required: ["quantity", "budget", "needs_clarification", "clarification_question"],
+      additionalProperties: false,
+    },
+  };
+
+  return callTool(instructions, history, tool);
+}
+
+module.exports = { extractNameAndProduct, extractQuantityAndDeadline, extractQuantityAndBudget };
