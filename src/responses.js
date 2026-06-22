@@ -1,11 +1,10 @@
 // Javob matnlari (O'zbek + Rus). Do'kon ma'lumotlari config'dan keladi.
 // Har bir javob: { text, quickReplies: [{title, payload}] }
-// payload format: "INTENT|lang"  (masalan: "PRICE|uz")
+// payload format: "INTENT|lang"  (masalan: "DELIVERY|uz")
 
 module.exports = function buildResponses(b) {
   // Quick reply tugmalar (tilga qarab). Katalog tugmasi olib tashlandi.
   const btn = (lang) => ({
-    price: { title: lang === "ru" ? "Цены" : "Narxlar", payload: `PRICE|${lang}` },
     delivery: { title: lang === "ru" ? "Доставка" : "Yetkazib berish", payload: `DELIVERY|${lang}` },
     order: { title: lang === "ru" ? "Заказать" : "Buyurtma berish", payload: `ORDER|${lang}` },
     operator: { title: lang === "ru" ? "Оператор" : "Operator", payload: `OPERATOR|${lang}` },
@@ -20,31 +19,14 @@ module.exports = function buildResponses(b) {
           `Assalomu alaykum! 👋 ${b.shopName}ga xush kelibsiz!\n` +
           `Men avtomat yordamchiman 🤖 Sizga qanday yordam bera olaman?\n` +
           `Quyidagidan birini tanlang yoki savolingizni yozing 👇`,
-        quickReplies: [U.price, U.delivery, U.order, U.operator],
+        quickReplies: [U.delivery, U.order, U.operator],
       },
       ru: {
         text:
           `Здравствуйте! 👋 Добро пожаловать в ${b.shopName}!\n` +
           `Я автоматический помощник 🤖 Чем могу помочь?\n` +
           `Выберите вариант или напишите свой вопрос 👇`,
-        quickReplies: [R.price, R.delivery, R.order, R.operator],
-      },
-    },
-
-    price: {
-      uz: {
-        text:
-          `Narxlar mahsulotga qarab farq qiladi 💰\n` +
-          `To'liq narxlar ro'yxati: ${b.catalogUrl}\n` +
-          `Qaysi mahsulot qiziqtiradi? Nomini yozing — narxi va mavjudligini aytaman 📲`,
-        quickReplies: [U.order, U.operator],
-      },
-      ru: {
-        text:
-          `Цена зависит от товара 💰\n` +
-          `Полный прайс: ${b.catalogUrl}\n` +
-          `Какой товар интересует? Напишите название — подскажу цену и наличие 📲`,
-        quickReplies: [R.order, R.operator],
+        quickReplies: [R.delivery, R.order, R.operator],
       },
     },
 
@@ -56,7 +38,7 @@ module.exports = function buildResponses(b) {
           `• ${b.deliveryRegion}\n` +
           `• ${b.selfPickup}\n` +
           `Buyurtma bermoqchi bo'lsangiz, "Buyurtma berish" tugmasini bosing 📦`,
-        quickReplies: [U.order, U.price, U.operator],
+        quickReplies: [U.order, U.operator],
       },
       ru: {
         text:
@@ -65,7 +47,7 @@ module.exports = function buildResponses(b) {
           `• ${b.deliveryRegion}\n` +
           `• ${b.selfPickup}\n` +
           `Если хотите сделать заказ, нажмите «Заказать» 📦`,
-        quickReplies: [R.order, R.price, R.operator],
+        quickReplies: [R.order, R.operator],
       },
     },
 
@@ -146,13 +128,13 @@ module.exports = function buildResponses(b) {
         text:
           `Kechirasiz, savolingizni to'liq tushunmadim 🤔\n` +
           `Quyidagidan birini tanlang yoki "operator" deb yozing — jonli xodim yordam beradi 👇`,
-        quickReplies: [U.price, U.order, U.operator],
+        quickReplies: [U.order, U.operator],
       },
       ru: {
         text:
           `Извините, не совсем понял ваш вопрос 🤔\n` +
           `Выберите вариант ниже или напишите «оператор» — поможет живой сотрудник 👇`,
-        quickReplies: [R.price, R.order, R.operator],
+        quickReplies: [R.order, R.operator],
       },
     },
   };
