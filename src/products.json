@@ -1,0 +1,53 @@
+[
+  { "code": "100-01", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 6000 }, { "minQty": 500, "price": 3500 }, { "minQty": 1000, "price": 2700 }
+  ] },
+  { "code": "100-04", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 6500 }, { "minQty": 500, "price": 4000 }, { "minQty": 1000, "price": 3500 }
+  ] },
+  { "code": "100-08", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 7000 }, { "minQty": 500, "price": 5000 }, { "minQty": 1000, "price": 4200 }
+  ] },
+  { "code": "100-10", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 10500 }, { "minQty": 500, "price": 8500 }, { "minQty": 1000, "price": 7500 }
+  ] },
+  { "code": "100-11", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 10000 }, { "minQty": 500, "price": 8500 }, { "minQty": 1000, "price": 7000 }
+  ] },
+  { "code": "100-16", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 50, "price": 24000 }, { "minQty": 100, "price": 24000 }, { "minQty": 500, "price": 22900 }, { "minQty": 1000, "price": 22800 }
+  ] },
+  { "code": "100-18", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 50, "price": 35000 }, { "minQty": 100, "price": 28000 }, { "minQty": 500, "price": 23000 }, { "minQty": 1000, "price": 23000 }
+  ] },
+  { "code": "100-19", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 50, "price": 45000 }, { "minQty": 100, "price": 38000 }, { "minQty": 500, "price": 33000 }, { "minQty": 1000, "price": 33000 }
+  ] },
+  { "code": "100-21", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 50, "price": 45000 }, { "minQty": 100, "price": 38000 }, { "minQty": 500, "price": 33000 }, { "minQty": 1000, "price": 33000 }
+  ] },
+  { "code": "100-25", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 12000 }, { "minQty": 500, "price": 10000 }, { "minQty": 1000, "price": 7500 }
+  ] },
+  { "code": "100-29", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 10, "price": 150000 }, { "minQty": 50, "price": 100000 }, { "minQty": 100, "price": 90000 }, { "minQty": 500, "price": 85000 }
+  ] },
+  { "code": "100-31", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 50, "price": 12000 }, { "minQty": 100, "price": 10000 }, { "minQty": 500, "price": 8000 }, { "minQty": 1000, "price": 7000 }
+  ] },
+  { "code": "100-34", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 10, "price": 50000 }, { "minQty": 50, "price": 40000 }, { "minQty": 100, "price": 35000 }
+  ] },
+  { "code": "100-35", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 10, "price": 50000 }, { "minQty": 50, "price": 40000 }, { "minQty": 100, "price": 35000 }
+  ] },
+  { "code": "100-37", "name": "Qalam", "image": null, "tiers": [
+    { "minQty": 50, "price": 5000 }, { "minQty": 100, "price": 3000 }, { "minQty": 500, "price": 2200 }
+  ] },
+  { "code": "100-38", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 15000 }, { "minQty": 500, "price": 12000 }, { "minQty": 1000, "price": 9500 }
+  ] },
+  { "code": "100-39", "name": "Ruchka", "image": null, "tiers": [
+    { "minQty": 100, "price": 18000 }, { "minQty": 500, "price": 17000 }, { "minQty": 1000, "price": 15000 }
+  ] }
+]
