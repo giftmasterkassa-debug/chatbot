@@ -7,7 +7,6 @@ const KEYWORDS = [
   { intent: "order", uz: ["buyurtma", "zakaz", "olmoqchi", "sotib ol", "band qil", "olaman"], ru: ["заказ", "купить", "оформ", "хочу взять", "хочу купить", "беру"] },
   { intent: "delivery", uz: ["yetkaz", "dostavka", "pochta", "kuryer", "manzilga", "olib kel"], ru: ["доставк", "доставля", "привоз", "курьер", "отправ"] },
   { intent: "payment", uz: ["to'lov", "tolov", "karta", "naqd", "payme", "click", "plastik"], ru: ["оплат", "карт", "наличн", "плати", "перевод"] },
-  { intent: "price", uz: ["narx", "narxi", "qancha", "necha pul", "price", "pochom", "pochcha"], ru: ["цена", "цены", "сколько", "стоит", "почем", "почём"] },
   { intent: "contact", uz: ["aloqa", "ish vaqti", "telefon", "raqam", "qachon ishlay", "manzilingiz"], ru: ["контакт", "время работы", "телефон", "номер", "когда работа", "где наход"] },
   { intent: "greeting", uz: ["salom", "assalom", "hayrli", "hi", "hello"], ru: ["привет", "здравств", "добрый", "салам", "здарова"] },
 ];
