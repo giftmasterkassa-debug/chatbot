@@ -211,6 +211,55 @@ function normalizePhone(text) {
   return "+998" + m[2];
 }
 
+async function processNameProduct(session, text, lang) {
+  session.history.push({ role: "user", content: text });
+
+  const result = await extractNameAndProduct(session.history, lang, session.data);
+  if (!result) {
+    // AI javob bermadi (key yo'q / xato) - mijoz yozganini xom holatda qabul qilamiz.
+    if (!session.data.name) session.data.name = text;
+    if (!session.data.product) session.data.product = text;
+  } else {
+    if (result.name) session.data.name = result.name;
+    if (result.product) session.data.product = result.product;
+    if (result.needs_clarification && result.clarification_question) {
+      session.history.push({ role: "assistant", content: result.clarification_question });
+      return { text: result.clarification_question, quickReplies: [cancelBtn(lang)] };
+    }
+  }
+
+  if (!session.data.name || !session.data.product) {
+    return { text: T[lang].needMoreNameProduct, quickReplies: [cancelBtn(lang)] };
+  }
+
+  const variants = findVariants(session.data.product);
+
+  if (variants.length > 1) {
+    // Bir nomda bir nechta narxdagi variant bor - soni+byudjet so'raymiz, keyin tavsiya qilamiz.
+    session.variants = variants;
+    session.step = "quantity_budget";
+    session.history = [];
+    return { text: T[lang].askQuantityBudget(session.data.product), quickReplies: [cancelBtn(lang)] };
+  }
+
+  // Bitta variant (yoki katalogda umuman yo'q, erkin mahsulot) - oddiy yo'l bilan davom etamiz.
+  session.step = "quantity_deadline";
+  session.history = [];
+  const resp = { text: T[lang].askQuantityDeadline(session.data.product), quickReplies: [cancelBtn(lang)] };
+  if (variants[0] && variants[0].image) resp.image = variants[0].image;
+  return resp;
+}
+
+// Mijoz "buyurtma" demasdan, to'g'ridan-to'g'ri mahsulot/narx haqida yozsa
+// (masalan "ruchka nechpul"), shu matn bilan sessiyani ochib, darhol AI orqali javob beramiz.
+// AI sozlanmagan bo'lsa null qaytaradi - chaqiruvchi (server.js) oddiy fallbackka qaytsin.
+async function startWithText(senderId, lang, text) {
+  if (!config.ai.apiKey) return null;
+  const session = { step: "name_product", lang, data: {}, history: [], variants: [], updatedAt: Date.now() };
+  sessions.set(senderId, session);
+  return processNameProduct(session, text, lang);
+}
+
 async function handleMessage(senderId, text, lang) {
   const session = sessions.get(senderId);
   if (!session) return null; // sessiya yo'q - chaqiruvchi normal routerga qaytsin
@@ -220,42 +269,7 @@ async function handleMessage(senderId, text, lang) {
 
   // --- 1-qadam: ism + mahsulot turi ---
   if (session.step === "name_product") {
-    session.history.push({ role: "user", content: text });
-
-    const result = await extractNameAndProduct(session.history, lang, session.data);
-    if (!result) {
-      // AI javob bermadi (key yo'q / xato) - mijoz yozganini xom holatda qabul qilamiz.
-      if (!session.data.name) session.data.name = text;
-      if (!session.data.product) session.data.product = text;
-    } else {
-      if (result.name) session.data.name = result.name;
-      if (result.product) session.data.product = result.product;
-      if (result.needs_clarification && result.clarification_question) {
-        session.history.push({ role: "assistant", content: result.clarification_question });
-        return { text: result.clarification_question, quickReplies: [cancelBtn(lang)] };
-      }
-    }
-
-    if (!session.data.name || !session.data.product) {
-      return { text: T[lang].needMoreNameProduct, quickReplies: [cancelBtn(lang)] };
-    }
-
-    const variants = findVariants(session.data.product);
-
-    if (variants.length > 1) {
-      // Bir nomda bir nechta narxdagi variant bor - soni+byudjet so'raymiz, keyin tavsiya qilamiz.
-      session.variants = variants;
-      session.step = "quantity_budget";
-      session.history = [];
-      return { text: T[lang].askQuantityBudget(session.data.product), quickReplies: [cancelBtn(lang)] };
-    }
-
-    // Bitta variant (yoki katalogda umuman yo'q, erkin mahsulot) - oddiy yo'l bilan davom etamiz.
-    session.step = "quantity_deadline";
-    session.history = [];
-    const resp = { text: T[lang].askQuantityDeadline(session.data.product), quickReplies: [cancelBtn(lang)] };
-    if (variants[0] && variants[0].image) resp.image = variants[0].image;
-    return resp;
+    return processNameProduct(session, text, lang);
   }
 
   // --- 2a-qadam: soni + muddat (bitta variantli mahsulot uchun) ---
@@ -355,4 +369,4 @@ async function handleMessage(senderId, text, lang) {
   return null;
 }
 
-module.exports = { isActive, start, cancel, cancelText, handleMessage };
+module.exports = { isActive, start, startWithText, cancel, cancelText, handleMessage };
