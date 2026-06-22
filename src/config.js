@@ -1,5 +1,7 @@
 // Konfiguratsiya: barcha sozlamalar .env faylidan o'qiladi.
 require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
 
 function val(name, def) {
   const v = process.env[name];
@@ -13,6 +15,21 @@ function list(name, def = []) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+// Mahsulotlar katalogi: products.json fayldan o'qiladi (nom + narx pog'onalari + rasm).
+// Fayl topilmasa, .env dagi PRODUCTS (oddiy nomlar, narxsiz) zaxira sifatida ishlatiladi.
+function loadCatalog() {
+  const filePath = path.join(__dirname, "products.json");
+  try {
+    if (fs.existsSync(filePath)) {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (Array.isArray(data)) return data;
+    }
+  } catch (e) {
+    console.error("⚠️  products.json o'qishda xato:", e.message);
+  }
+  return list("PRODUCTS", []).map((name) => ({ name, image: null, tiers: [] }));
 }
 
 const config = {
@@ -40,11 +57,10 @@ const config = {
   ai: {
     apiKey: val("OPENAI_API_KEY", ""),
     model: val("AI_MODEL", "gpt-5.4-mini"), // arzonroq variant: gpt-4.1-nano yoki gpt-5.4-nano
-    // Do'kondagi mahsulotlar ro'yxati - .env faylida vergul bilan yoziladi, masalan:
-    // PRODUCTS="ruchka,bloknot,sovga to'plami,krujka"
-    // Shu ro'yxat bo'lsa, AI mijoz xato/qisqa yozgan nomlarni shularga moslab aniqlashtiradi.
-    products: list("PRODUCTS", []),
   },
+
+  // Mahsulotlar katalogi (products.json yoki .env PRODUCTS dan) - nom, rasm, narx pog'onalari.
+  catalog: loadCatalog(),
 
   // Do'kon ma'lumotlari (javob matnlariga qo'yiladi)
   business: {
