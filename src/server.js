@@ -3,7 +3,7 @@ const express = require("express");
 const config = require("./config");
 const buildResponses = require("./responses");
 const { buildRouter } = require("./router");
-const { verifySignature, sendMessage, markSeen } = require("./messenger");
+const { verifySignature, sendMessage, markSeen, sendImage } = require("./messenger");
 const { detectLang } = require("./lang");
 const orderFlow = require("./orderFlow");
 
@@ -71,17 +71,34 @@ app.post("/webhook", (req, res) => {
 
 // Operatorga (do'kon egasiga) yangi buyurtma haqida qisqa xabar tayyorlaydi.
 function buildAdminNotice(senderId, order) {
+  let priceLine = "";
+  if (order.price) {
+    priceLine = `💰 Narxi: ${order.price.unitPrice.toLocaleString("en-US").replace(/,/g, " ")} so'm/dona x ${order.quantity} = ${order.price.total.toLocaleString("en-US").replace(/,/g, " ")} so'm\n`;
+  } else if (order.minQtyRequired) {
+    priceLine = `💰 Diqqat: mijoz so'ragan miqdor eng kam buyurtma chegarasidan (${order.minQtyRequired} dona) kam - narxni o'zingiz belgilang\n`;
+  }
   return {
     text:
       `🆕 Yangi buyurtma!\n` +
       `👤 Ism: ${order.name}\n` +
       `🎁 Mahsulot: ${order.product}\n` +
       `🔢 Soni: ${order.quantity}\n` +
+      priceLine +
       `⏰ Muddat: ${order.deadline}\n` +
       `📱 Telefon: ${order.phone}\n` +
       `🆔 Instagram ID: ${senderId}`,
     quickReplies: [],
   };
+}
+
+// Kalit so'z topilmagan xabar mahsulot/narx haqida so'rov bo'lishi mumkinligini taxmin qiladi
+// (masalan "ruchka nechpul", "qalam bormi"). Faqat shunday holatda AI'ni ishga tushiramiz -
+// shunda "rahmat", "zor" kabi mavzusiz xabarlar behuda buyurtma jarayonini boshlamaydi.
+function looksLikeProductInquiry(text) {
+  const t = (text || "").toLowerCase();
+  if (/\d/.test(t)) return true; // raqam bor - narx/son so'ralayotgan bo'lishi mumkin
+  if (/nech|narx|qancha|qiymat|bormi|mavjud|сколько|сум|цена/.test(t)) return true;
+  return config.catalog.some((p) => t.includes(p.name.toLowerCase()));
 }
 
 async function handleEvent(event) {
@@ -145,6 +162,7 @@ async function handleEvent(event) {
     const lang = detectLang(text);
     const result = await orderFlow.handleMessage(senderId, text, lang);
     if (result) {
+      if (result.image) await sendImage(senderId, result.image);
       await sendMessage(senderId, result);
       if (result.finished && result.order && config.adminRecipientId) {
         await sendMessage(config.adminRecipientId, buildAdminNotice(senderId, result.order));
@@ -162,6 +180,19 @@ async function handleEvent(event) {
     await sendMessage(senderId, r);
     console.log(`→ Buyurtma boshlandi: ${senderId}`);
     return;
+  }
+
+  // Hech qanday kalit so'z topilmadi ("buyurtma" deyilmadi) - lekin bu mahsulot/narx haqida
+  // savol bo'lishi mumkin (masalan "ruchka nechpul"). AI sozlangan bo'lsa, shu matn bilan
+  // to'g'ridan-to'g'ri buyurtma jarayonini boshlab ko'ramiz.
+  if (intent === "fallback" && looksLikeProductInquiry(text)) {
+    const r = await orderFlow.startWithText(senderId, lang, text);
+    if (r) {
+      if (r.image) await sendImage(senderId, r.image);
+      await sendMessage(senderId, r);
+      console.log(`→ Buyurtma boshlandi (AI, kalit so'zsiz): ${senderId}`);
+      return;
+    }
   }
 
   await sendMessage(senderId, response);
