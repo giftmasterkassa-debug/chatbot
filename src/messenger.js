@@ -74,4 +74,34 @@ async function markSeen(recipientId) {
   }
 }
 
-module.exports = { verifySignature, sendMessage, markSeen };
+// Mahsulot rasmini (havola orqali) yuborish.
+async function sendImage(recipientId, imageUrl) {
+  if (!imageUrl) return;
+
+  const body = {
+    recipient: { id: recipientId },
+    messaging_type: "RESPONSE",
+    message: { attachment: { type: "image", payload: { url: imageUrl, is_reusable: true } } },
+  };
+
+  if (config.dryRun) {
+    console.log("[DRY_RUN][IMAGE] →", recipientId, imageUrl);
+    return { dryRun: true };
+  }
+
+  try {
+    const res = await fetch(apiUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) console.error("Rasm yuborishda xato:", res.status, JSON.stringify(data));
+    return data;
+  } catch (e) {
+    console.error("Rasm yuborish ulanish xatosi:", e.message);
+    return { error: e.message };
+  }
+}
+
+module.exports = { verifySignature, sendMessage, markSeen, sendImage };
