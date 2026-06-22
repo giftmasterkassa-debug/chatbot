@@ -175,7 +175,7 @@ app.listen(config.port, () => {
   if (!config.pageAccessToken && !config.dryRun)
     console.log("⚠️  PAGE_ACCESS_TOKEN sozlanmagan - xabar yuborib bo'lmaydi.");
   if (!config.ai.apiKey)
-    console.log("⚠️  ANTHROPIC_API_KEY sozlanmagan - buyurtma bosqichma-bosqich AI rejimida ishlamaydi (statik rejim).");
+    console.log("⚠️  OPENAI_API_KEY sozlanmagan - buyurtma bosqichma-bosqich AI rejimida ishlamaydi (statik rejim).");
 });
 
 module.exports = app;
