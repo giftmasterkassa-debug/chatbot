@@ -8,7 +8,6 @@ const KEYWORDS = [
   { intent: "delivery", uz: ["yetkaz", "dostavka", "pochta", "kuryer", "manzilga", "olib kel"], ru: ["доставк", "доставля", "привоз", "курьер", "отправ"] },
   { intent: "payment", uz: ["to'lov", "tolov", "karta", "naqd", "payme", "click", "plastik"], ru: ["оплат", "карт", "наличн", "плати", "перевод"] },
   { intent: "price", uz: ["narx", "narxi", "qancha", "necha pul", "price", "pochom", "pochcha"], ru: ["цена", "цены", "сколько", "стоит", "почем", "почём"] },
-  { intent: "catalog", uz: ["katalog", "mahsulot", "assortiment", "bormi", "tovar", "model", "tovarlar"], ru: ["каталог", "товар", "ассортимент", "есть ли", "модель", "что есть"] },
   { intent: "contact", uz: ["aloqa", "ish vaqti", "telefon", "raqam", "qachon ishlay", "manzilingiz"], ru: ["контакт", "время работы", "телефон", "номер", "когда работа", "где наход"] },
   { intent: "greeting", uz: ["salom", "assalom", "hayrli", "hi", "hello"], ru: ["привет", "здравств", "добрый", "салам", "здарова"] },
 ];
@@ -36,7 +35,7 @@ function buildRouter(responses) {
     return node[lang] || node.uz;
   }
 
-  // event -> { lang, response }
+  // event -> { lang, intent, response }
   function route(event) {
     const msg = event.message || {};
 
@@ -46,7 +45,7 @@ function buildRouter(responses) {
       const [intentRaw, langRaw] = String(payload).split("|");
       const intent = (intentRaw || "").toLowerCase();
       const lang = langRaw === "ru" ? "ru" : "uz";
-      return { lang, response: getResponse(intent, lang) };
+      return { lang, intent, response: getResponse(intent, lang) };
     }
 
     // 2) Oddiy matn bo'lsa, tilni aniqlab, kalit so'z bo'yicha javob beramiz
@@ -54,11 +53,11 @@ function buildRouter(responses) {
     if (text) {
       const lang = detectLang(text);
       const intent = matchIntent(text) || "fallback";
-      return { lang, response: getResponse(intent, lang) };
+      return { lang, intent, response: getResponse(intent, lang) };
     }
 
     // 3) Matn yo'q (stiker/rasm) - salomlashish bilan javob beramiz
-    return { lang: "uz", response: responses.welcome.uz };
+    return { lang: "uz", intent: "welcome", response: responses.welcome.uz };
   }
 
   return { route, matchIntent, getResponse };
