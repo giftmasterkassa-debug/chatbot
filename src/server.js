@@ -150,10 +150,10 @@ async function handleEvent(event) {
     return;
   }
 
-  // 2) Matn yo'q (stiker/rasm) - salomlashish bilan javob beramiz
+  // 2) Matn yo'q (stiker, rasm, "like" reaksiyasi va h.k.) - bunga javob bermaymiz,
+  // aks holda mijoz oxirgi xabarga reaksiya bossa ham bot qayta salomlashib qoladi.
   const text = msg.text;
   if (!text) {
-    await sendMessage(senderId, responses.welcome.uz);
     return;
   }
 
