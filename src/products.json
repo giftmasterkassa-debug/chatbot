@@ -1621,5 +1621,768 @@
         "price": 16800
       }
     ]
+  },
+  {
+    "code": "102-22",
+    "name": "Ejednevnik",
+    "image": null,
+    "options": [
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 70000
+          },
+          {
+            "minQty": 100,
+            "price": 65000
+          },
+          {
+            "minQty": 500,
+            "price": 60000
+          }
+        ]
+      },
+      {
+        "label": "Tisnenie",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 68000
+          },
+          {
+            "minQty": 100,
+            "price": 63000
+          },
+          {
+            "minQty": 500,
+            "price": 57000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "102-23",
+    "name": "Ejednevnik",
+    "image": null,
+    "options": [
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 72000
+          },
+          {
+            "minQty": 100,
+            "price": 65000
+          },
+          {
+            "minQty": 500,
+            "price": 59000
+          }
+        ]
+      },
+      {
+        "label": "Tisnenie",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 70000
+          },
+          {
+            "minQty": 100,
+            "price": 63000
+          },
+          {
+            "minQty": 500,
+            "price": 57000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "102-25",
+    "name": "Ejednevnik (organayzer)",
+    "image": null,
+    "options": [
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 86000
+          },
+          {
+            "minQty": 100,
+            "price": 79000
+          },
+          {
+            "minQty": 500,
+            "price": 73000
+          }
+        ]
+      },
+      {
+        "label": "Tisnenie",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 86000
+          },
+          {
+            "minQty": 100,
+            "price": 79000
+          },
+          {
+            "minQty": 500,
+            "price": 73000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "102-01",
+    "name": "Ejednevnik Spectrum",
+    "image": null,
+    "options": [
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 49000
+          },
+          {
+            "minQty": 100,
+            "price": 42000
+          },
+          {
+            "minQty": 500,
+            "price": 36000
+          }
+        ]
+      },
+      {
+        "label": "Tisnenie",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 49000
+          },
+          {
+            "minQty": 100,
+            "price": 42000
+          },
+          {
+            "minQty": 500,
+            "price": 36000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "102-04",
+    "name": "Ejednevnik",
+    "image": null,
+    "options": [
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 60000
+          },
+          {
+            "minQty": 100,
+            "price": 53000
+          },
+          {
+            "minQty": 500,
+            "price": 49000
+          }
+        ]
+      },
+      {
+        "label": "Tisnenie",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 58000
+          },
+          {
+            "minQty": 100,
+            "price": 51000
+          },
+          {
+            "minQty": 500,
+            "price": 46000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "104-02",
+    "name": "Devor soati - Dumaloq 35sm",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 63500
+      },
+      {
+        "minQty": 100,
+        "price": 56000
+      },
+      {
+        "minQty": 500,
+        "price": 48500
+      },
+      {
+        "minQty": 1000,
+        "price": 45500
+      }
+    ]
+  },
+  {
+    "code": "104-03",
+    "name": "Devor soati PREMIUM",
+    "image": null,
+    "options": [
+      {
+        "label": "Pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 90000
+          },
+          {
+            "minQty": 100,
+            "price": 82000
+          },
+          {
+            "minQty": 500,
+            "price": 77000
+          },
+          {
+            "minQty": 1000,
+            "price": 73000
+          }
+        ]
+      },
+      {
+        "label": "Tisnenie (oltin)",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 115000
+          },
+          {
+            "minQty": 100,
+            "price": 100000
+          },
+          {
+            "minQty": 500,
+            "price": 97500
+          },
+          {
+            "minQty": 1000,
+            "price": 96000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "104-05",
+    "name": "Devor soati - Kvadrat 27sm",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 47000
+      },
+      {
+        "minQty": 100,
+        "price": 42000
+      },
+      {
+        "minQty": 500,
+        "price": 38000
+      },
+      {
+        "minQty": 1000,
+        "price": 36500
+      }
+    ]
+  },
+  {
+    "code": "103-01",
+    "name": "Termos (LED harorat)",
+    "image": null,
+    "options": [
+      {
+        "label": "Lazer gravirovka",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 87000
+          },
+          {
+            "minQty": 100,
+            "price": 85000
+          },
+          {
+            "minQty": 500,
+            "price": 82000
+          }
+        ]
+      },
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 88000
+          },
+          {
+            "minQty": 100,
+            "price": 86000
+          },
+          {
+            "minQty": 500,
+            "price": 83000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "103-02",
+    "name": "Termokrujka",
+    "image": null,
+    "options": [
+      {
+        "label": "Lazer gravirovka",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 87000
+          },
+          {
+            "minQty": 100,
+            "price": 85000
+          },
+          {
+            "minQty": 500,
+            "price": 82000
+          }
+        ]
+      },
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 88000
+          },
+          {
+            "minQty": 100,
+            "price": 86000
+          },
+          {
+            "minQty": 500,
+            "price": 83000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "103-03",
+    "name": "Termos (shisha)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 120000
+      },
+      {
+        "minQty": 100,
+        "price": 105000
+      },
+      {
+        "minQty": 500,
+        "price": 95000
+      }
+    ]
+  },
+  {
+    "code": "103-05",
+    "name": "Termos (metall, uzun)",
+    "image": null,
+    "options": [
+      {
+        "label": "Lazer gravirovka",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 87000
+          },
+          {
+            "minQty": 100,
+            "price": 85000
+          },
+          {
+            "minQty": 500,
+            "price": 82000
+          }
+        ]
+      },
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 88000
+          },
+          {
+            "minQty": 100,
+            "price": 86000
+          },
+          {
+            "minQty": 500,
+            "price": 83000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "103-07",
+    "name": "Termos (sport, dastali)",
+    "image": null,
+    "options": [
+      {
+        "label": "Lazer gravirovka",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 95000
+          },
+          {
+            "minQty": 100,
+            "price": 85000
+          },
+          {
+            "minQty": 500,
+            "price": 75000
+          }
+        ]
+      },
+      {
+        "label": "UF-pechat",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 97000
+          },
+          {
+            "minQty": 100,
+            "price": 87000
+          },
+          {
+            "minQty": 500,
+            "price": 77000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "103-23",
+    "name": "Termos (yog'och korinish)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 10,
+        "price": 120000
+      },
+      {
+        "minQty": 50,
+        "price": 105000
+      },
+      {
+        "minQty": 100,
+        "price": 90000
+      }
+    ]
+  },
+  {
+    "code": "105-06",
+    "name": "Stakan",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 24,
+        "price": 55000
+      },
+      {
+        "minQty": 60,
+        "price": 45000
+      },
+      {
+        "minQty": 120,
+        "price": 40000
+      }
+    ]
+  },
+  {
+    "code": "105-07",
+    "name": "Chashka va tarelka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 24,
+        "price": 60000
+      },
+      {
+        "minQty": 60,
+        "price": 50000
+      },
+      {
+        "minQty": 120,
+        "price": 45000
+      }
+    ]
+  },
+  {
+    "code": "105-08",
+    "name": "Krujka Sublimation (matli)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 35000
+      },
+      {
+        "minQty": 100,
+        "price": 30000
+      },
+      {
+        "minQty": 500,
+        "price": 25000
+      }
+    ]
+  },
+  {
+    "code": "105-01",
+    "name": "Krujka Sublimation (yaltiroq)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 31500
+      },
+      {
+        "minQty": 100,
+        "price": 25000
+      },
+      {
+        "minQty": 500,
+        "price": 21000
+      }
+    ]
+  },
+  {
+    "code": "105-02",
+    "name": "Krujka Soft Touch",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 45000
+      },
+      {
+        "minQty": 100,
+        "price": 37000
+      },
+      {
+        "minQty": 500,
+        "price": 33000
+      }
+    ]
+  },
+  {
+    "code": "106-06",
+    "name": "Fartuk",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 75000
+      },
+      {
+        "minQty": 100,
+        "price": 65000
+      },
+      {
+        "minQty": 500,
+        "price": 55000
+      }
+    ]
+  },
+  {
+    "code": "106-07",
+    "name": "Kepka",
+    "image": null,
+    "options": [
+      {
+        "label": "DTF",
+        "tiers": [
+          {
+            "minQty": 10,
+            "price": 50000
+          },
+          {
+            "minQty": 50,
+            "price": 30000
+          },
+          {
+            "minQty": 100,
+            "price": 25000
+          },
+          {
+            "minQty": 500,
+            "price": 20500
+          }
+        ]
+      },
+      {
+        "label": "Vыshivka",
+        "tiers": [
+          {
+            "minQty": 10,
+            "price": 50000
+          },
+          {
+            "minQty": 50,
+            "price": 31000
+          },
+          {
+            "minQty": 100,
+            "price": 26000
+          },
+          {
+            "minQty": 500,
+            "price": 21500
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "106-01",
+    "name": "Futbolka XB",
+    "image": null,
+    "options": [
+      {
+        "label": "Suprem 130gr",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 55000
+          },
+          {
+            "minQty": 100,
+            "price": 50000
+          },
+          {
+            "minQty": 500,
+            "price": 45000
+          },
+          {
+            "minQty": 1000,
+            "price": 38000
+          }
+        ]
+      },
+      {
+        "label": "Laykra 170gr",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 60000
+          },
+          {
+            "minQty": 100,
+            "price": 57000
+          },
+          {
+            "minQty": 500,
+            "price": 55000
+          },
+          {
+            "minQty": 1000,
+            "price": 46000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "code": "106-02",
+    "name": "Polo",
+    "image": null,
+    "options": [
+      {
+        "label": "Pike 190gr",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 90000
+          },
+          {
+            "minQty": 100,
+            "price": 85000
+          },
+          {
+            "minQty": 500,
+            "price": 75000
+          },
+          {
+            "minQty": 1000,
+            "price": 70000
+          }
+        ]
+      },
+      {
+        "label": "Lakoste 180gr",
+        "tiers": [
+          {
+            "minQty": 50,
+            "price": 90000
+          },
+          {
+            "minQty": 100,
+            "price": 85000
+          },
+          {
+            "minQty": 500,
+            "price": 75000
+          },
+          {
+            "minQty": 1000,
+            "price": 70000
+          }
+        ]
+      }
+    ]
   }
 ]
