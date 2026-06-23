@@ -1,31 +1,37 @@
-// Router: kelgan xabarni tahlil qilib, qaysi javob berishni hal qiladi.
+// Router: Kelgan xabarni tahlil qiladi va AI'ga yo'naltiradi.
+// DIQQAT: Tugmalar (Quick Replies) to'liq olib tashlandi!
+
 const { detectLang } = require("./lang");
 
-// Kalit so'zlar. Tartib = ustuvorlik (yuqoridagilar oldin tekshiriladi).
+// Kalit so'zlar qisqartirildi. 
+// Barcha suhbat mantig'ini (salomlashish, narx, mahsulot) endi AI hal qiladi.
+// Bu yerda faqat "Favqulodda (Escape)" buyruqlar qoldirildi.
 const KEYWORDS = [
-  { intent: "operator", uz: ["operator", "menejer", "jonli", "administrator", "odam bilan", "xodim"], ru: ["оператор", "менеджер", "живой", "человек", "админ", "сотрудник"] },
-  { intent: "order", uz: ["buyurtma", "zakaz", "olmoqchi", "sotib ol", "band qil", "olaman"], ru: ["заказ", "купить", "оформ", "хочу взять", "хочу купить", "беру"] },
-  { intent: "delivery", uz: ["yetkaz", "dostavka", "pochta", "kuryer", "manzilga", "olib kel"], ru: ["доставк", "доставля", "привоз", "курьер", "отправ"] },
-  { intent: "payment", uz: ["to'lov", "tolov", "karta", "naqd", "payme", "click", "plastik"], ru: ["оплат", "карт", "наличн", "плати", "перевод"] },
-  { intent: "contact", uz: ["aloqa", "ish vaqti", "telefon", "raqam", "qachon ishlay", "manzilingiz"], ru: ["контакт", "время работы", "телефон", "номер", "когда работа", "где наход"] },
-  { intent: "greeting", uz: ["salom", "assalom", "hayrli", "hi", "hello"], ru: ["привет", "здравств", "добрый", "салам", "здарова"] },
+  { 
+    intent: "operator", 
+    uz: ["operator", "menejer", "jonli", "administrator", "odam bilan", "xodimga", "mutaxassis"], 
+    ru: ["оператор", "менеджер", "живой", "человек", "админ", "сотрудник", "специалист"] 
+  }
 ];
 
+// Matnni tozalash va bir xil formatga keltirish
 function normalize(t) {
   return (t || "").toLowerCase().replace(/[’`ʻ]/g, "'").trim();
 }
 
-// Matn bo'yicha intent (mavzu) topish
+// Matn bo'yicha qat'iy intent (mavzu) topish
 function matchIntent(text) {
   const t = normalize(text);
   if (!t) return null;
+  
   for (const k of KEYWORDS) {
     const words = [...k.uz, ...k.ru];
     if (words.some((w) => t.includes(w))) {
-      return k.intent === "greeting" ? "welcome" : k.intent;
+      return k.intent;
     }
   }
-  return null;
+  // Agar maxsus buyruq bo'lmasa, null qaytadi va xabar AI'ga (orderFlow) o'tadi
+  return null; 
 }
 
 function buildRouter(responses) {
@@ -34,32 +40,36 @@ function buildRouter(responses) {
     return node[lang] || node.uz;
   }
 
-  // event -> { lang, intent, response }
+  // event -> { lang, intent, text, response }
   function route(event) {
     const msg = event.message || {};
-
-    // 1) Quick reply tugma bosilgan bo'lsa, payload'dan intent va tilni olamiz
-    const payload = msg.quick_reply && msg.quick_reply.payload;
-    if (payload) {
-      const [intentRaw, langRaw] = String(payload).split("|");
-      const intent = (intentRaw || "").toLowerCase();
-      const lang = langRaw === "ru" ? "ru" : "uz";
-      return { lang, intent, response: getResponse(intent, lang) };
-    }
-
-    // 2) Oddiy matn bo'lsa, tilni aniqlab, kalit so'z bo'yicha javob beramiz
     const text = msg.text;
+
+    // Tugmalar (quick_reply) mantiqi to'liq o'chirildi. Faqat erkin matn bilan ishlaymiz.
     if (text) {
       const lang = detectLang(text);
-      const intent = matchIntent(text) || "fallback";
-      return { lang, intent, response: getResponse(intent, lang) };
+      const intent = matchIntent(text);
+      
+      // Agar intent topilsa (masalan, "operator"), statik javob qaytadi. 
+      // Aks holda intent null bo'ladi va asosiy fayl (bot.js) uni AI'ga beradi.
+      return { 
+        lang: lang, 
+        intent: intent, 
+        text: text,
+        response: intent ? getResponse(intent, lang) : null 
+      };
     }
 
-    // 3) Matn yo'q (stiker/rasm) - salomlashish bilan javob beramiz
-    return { lang: "uz", intent: "welcome", response: responses.welcome.uz };
+    // Matn bo'lmagan holatlar (rasm, stiker yuborilganda)
+    return { 
+      lang: "uz", 
+      intent: null, 
+      text: "", 
+      response: null 
+    };
   }
 
-  return { route, matchIntent, getResponse };
+  return { route, matchIntent, getResponse, normalize, KEYWORDS };
 }
 
 module.exports = { buildRouter, matchIntent, normalize, KEYWORDS };
