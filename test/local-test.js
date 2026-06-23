@@ -1,67 +1,80 @@
-// Lokal test: routing va imzo tekshiruvini real Meta'ga ulanmasdan sinaydi.
-process.env.SHOP_NAME = process.env.SHOP_NAME || "Test Shop";
+// Lokal test: Yangi AI-arxitektura uchun routing, til aniqlash va imzo tekshiruvini sinaydi.
+process.env.SHOP_NAME = process.env.SHOP_NAME || "Gift Master Test";
 process.env.APP_SECRET = "testsecret"; // imzo testi uchun
 
 const assert = require("assert");
 const crypto = require("crypto");
-const config = require("../src/config");
+// Yo'llar to'g'ri ekanligiga e'tibor bering (test papkasidan src papkasiga)
+const config = require("../src/config"); 
 const buildResponses = require("../src/responses");
 const { buildRouter } = require("../src/router");
 const { verifySignature } = require("../src/messenger");
+const { detectLang } = require("../src/lang");
 
 const responses = buildResponses(config.business);
-const { route, matchIntent } = buildRouter(responses);
+const { route } = buildRouter(responses);
 
+// Soxta hodisa yaratuvchi
 const ev = (text) => ({ sender: { id: "u1" }, message: { mid: "m" + Math.random(), text } });
-const evQR = (payload) => ({ sender: { id: "u1" }, message: { mid: "q" + Math.random(), text: "", quick_reply: { payload } } });
 
-const cases = [
-  ["narx qancha?", "uz", "price"],
-  ["Сколько это стоит?", "ru", "price"],
-  ["salom", "uz", "welcome"],
-  ["Привет!", "ru", "welcome"],
-  ["katalog bormi", "uz", "catalog"],
-  ["какой каталог есть", "ru", "catalog"],
-  ["dostavka bormi", "uz", "delivery"],
-  ["доставка есть?", "ru", "delivery"],
-  ["buyurtma bermoqchiman", "uz", "order"],
-  ["хочу купить", "ru", "order"],
-  ["to'lov qanday", "uz", "payment"],
-  ["оплата картой можно?", "ru", "payment"],
-  ["operator chaqiring", "uz", "operator"],
-  ["позовите оператора", "ru", "operator"],
-  ["ish vaqti qachon", "uz", "contact"],
-  ["asdfg qwerty", "uz", "fallback"],
+console.log("=== 1. Tilni aniqlash testlari (detectLang) ===");
+// O'zbek lotin, rus va o'zbek kirill alifbolari farqlanishi kerak
+const langCases = [
+  ["salom qandaysiz", "uz"],
+  ["Привет!", "ru"],
+  ["narx qancha?", "uz"],
+  ["Сколько стоит?", "ru"],
+  ["қанақа ручкаларинг бор", "uz"], // O'zbek kirill (sheva/xato)
+  ["здравствуйте", "ru"],
 ];
 
-let pass = 0;
-console.log("=== Routing testlari ===");
-for (const [text, lang, intent] of cases) {
-  const got = matchIntent(text) || "fallback";
-  const r = route(ev(text));
-  assert.strictEqual(r.lang, lang, `TIL xato: "${text}" => ${r.lang}, kutilgan ${lang}`);
-  assert.strictEqual(got, intent, `INTENT xato: "${text}" => ${got}, kutilgan ${intent}`);
-  assert.ok(r.response && r.response.text && r.response.text.length > 0, `Bo'sh javob: "${text}"`);
-  pass++;
-  console.log(`  ✓ "${text}"  →  ${intent} (${lang})`);
+let passLang = 0;
+for (const [text, expectedLang] of langCases) {
+  const gotLang = detectLang(text);
+  assert.strictEqual(gotLang, expectedLang, `TIL xato: "${text}" => ${gotLang}, kutilgan ${expectedLang}`);
+  passLang++;
+  console.log(`  ✓ "${text}"  →  ${gotLang}`);
 }
 
-console.log("\n=== Quick reply testi ===");
-const qr1 = route(evQR("PRICE|ru"));
-assert.strictEqual(qr1.lang, "ru");
-assert.ok(qr1.response.text.includes("Цена") || qr1.response.text.length > 0);
-console.log("  ✓ PRICE|ru →", qr1.lang);
-const qr2 = route(evQR("ORDER|uz"));
-assert.strictEqual(qr2.lang, "uz");
-assert.ok(qr2.response.text.includes("Buyurtma"));
-console.log("  ✓ ORDER|uz →", qr2.lang);
+console.log("\n=== 2. Router va AI'ga uzatish testlari ===");
+// Tizimda faqat "operator" intenti (statik) qolgan, qolgan hamma matn null bo'lib AI'ga ketishi kerak.
+const routerCases = [
+  ["operator chaqiring", "operator", "uz"],
+  ["позовите оператора", "operator", "ru"],
+  ["odam bilan gaplashaman", "operator", "uz"],
+  ["salom qanaqa tovarlar bor?", null, "uz"],  // AI'ga ketishi kerak
+  ["ruchka qancha", null, "uz"],               // AI'ga ketishi kerak
+  ["какие наборы есть?", null, "ru"],          // AI'ga ketishi kerak
+];
 
-console.log("\n=== Imzo (signature) testi ===");
+let passRouter = 0;
+for (const [text, expectedIntent, expectedLang] of routerCases) {
+  const result = route(ev(text));
+  assert.strictEqual(result.intent, expectedIntent, `INTENT xato: "${text}" => ${result.intent}, kutilgan ${expectedIntent}`);
+  assert.strictEqual(result.lang, expectedLang, `TIL xato: "${text}" => ${result.lang}, kutilgan ${expectedLang}`);
+  
+  if (expectedIntent === "operator") {
+    // Agar operator so'ralsa, tayyor statik matn qaytishi kerak
+    assert.ok(result.response && result.response.text, "Operator javobi bo'sh qoldi!");
+    console.log(`  ✓ Favqulodda ulanish: "${text}"  →  ${result.intent} (${result.lang})`);
+  } else {
+    // Agar boshqa matn bo'lsa, router aralashmasdan response: null qaytarishi kerak (buni server.js AI'ga uzatadi)
+    assert.strictEqual(result.response, null, "AI'ga ketadigan xabarga router aralashib qoldi!");
+    console.log(`  ✓ AI'ga uzatiladi: "${text}"  →  intent: null (${result.lang})`);
+  }
+  passRouter++;
+}
+
+console.log("\n=== 3. Tugmalar (Quick reply) holati ===");
+console.log("  ✓ Tizim biznes talabiga asosan barcha tugmalar (Quick Replies) olib tashlangan.");
+
+console.log("\n=== 4. Imzo (signature) tekshiruvi testi ===");
 const raw = Buffer.from(JSON.stringify({ object: "instagram", entry: [] }));
 const goodSig = "sha256=" + crypto.createHmac("sha256", "testsecret").update(raw).digest("hex");
+
 assert.strictEqual(verifySignature(raw, goodSig), true, "To'g'ri imzo rad etildi");
 assert.strictEqual(verifySignature(raw, "sha256=deadbeef"), false, "Yolg'on imzo qabul qilindi");
-console.log("  ✓ to'g'ri imzo qabul qilindi");
-console.log("  ✓ yolg'on imzo rad etildi");
+console.log("  ✓ To'g'ri imzo qabul qilindi");
+console.log("  ✓ Yolg'on imzo rad etildi");
 
-console.log(`\n✅ HAMMASI O'TDI — ${pass} routing + 2 quick reply + 2 imzo testi.`);
+console.log(`\n✅ HAMMASI O'TDI — ${passLang} ta til, ${passRouter} ta routing + imzo testlari muvaffaqiyatli yakunlandi.`);
