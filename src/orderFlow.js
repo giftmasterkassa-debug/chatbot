@@ -1,5 +1,5 @@
 // Buyurtma jarayoni: AI yordamida bosqichma-bosqich ma'lumot yig'ish.
-// XOTIRA (MEMORY) TIZIMI QO'SHILDI.
+// DIQQAT: Barcha Quick Replies (tugmalar) olib tashlandi! Mijoz erkin matn yozadi.
 
 const config = require("./config");
 const buildResponses = require("./responses");
@@ -41,14 +41,10 @@ const T = {
         ? "Sizga mos variant topdim: \"" + variant.name + " (" + variant.code + ")\" — " + formatMoney(price.unitPrice) + " so'm/dona."
         : "\"" + variant.name + " (" + variant.code + ")\" mos keladi, lekin bu mahsulot uchun eng kam buyurtma - " + Math.min.apply(null, variant.tiers.map(function (t) { return t.minQty; })) + " dona, narxni operator aniqlashtiradi.";
       if (overBudget) line += "\n⚠️ Eslatma: bu aytgan byudjetingizdan biroz yuqoriroq.";
-      return line + "\nMos kelmasa \"boshqa\" deb yozing, yoki davom etish uchun tasdiqlang 👇";
+      return line + "\nAgar variant ma'qul bo'lsa \"davom etamiz\" yoki mos kelmasa \"boshqasini ko'rsating\" deb yozing 👇";
     },
-    altBtn: "Boshqa variant",
-    continueBtn: "Davom etish",
     noMoreAlternatives: "Afsuski, boshqa variant qolmadi - shu eng yaqin keladigani. Davom etamiz.",
-    askAddMore: "Yana biror mahsulot qo'shmoqchimisiz?",
-    addMoreBtn: "Ha, yana qo'shaman",
-    noMoreBtn: "Yo'q, tamom",
+    askAddMore: "Yana biror mahsulot qo'shmoqchimisiz? Yoki zakazni yakunlaymizmi?",
     askDeadline: "Butun buyurtma qachongacha tayyor bo'lishi kerak? ⏰\n(Masalan: \"ertaga\" yoki \"3 kun ichida\")",
     askPhone: "Aloqa uchun telefon raqamingizni yuboring 📱\n(Masalan: +998 90 123 45 67)",
     invalidPhone: "Telefon raqami noto'g'ri ko'rinmoqda 🤔 Iltimos, qaytadan yuboring (masalan: +998 90 123 45 67)",
@@ -56,10 +52,8 @@ const T = {
     needMoreQty: "Iltimos, nechta dona kerakligini aniqroq yozing.",
     needMoreQtyBudget: "Iltimos, kamida nechta dona kerakligini yozing.",
     cancelled: "Suhbat bekor qilindi. Yordam kerak bo'lsa, istalgan vaqtda yozishingiz mumkin 😊",
-    cancelBtn: "Bekor qilish",
-    confirmBtn: "Tasdiqlash",
     confirmOrder: function (summary, total) {
-      return "Keling, buyurtmangizni tekshirib chiqamiz 📋\n\n" + summary + "\n" + (total ? "\n💰 Jami: " + formatMoney(total) + " so'm\n" : "") + "\nHammasi to'g'rimi? Tasdiqlasangiz, telefon raqamingizni so'rayman.";
+      return "Keling, buyurtmangizni tekshirib chiqamiz 📋\n\n" + summary + "\n" + (total ? "\n💰 Jami: " + formatMoney(total) + " so'm\n" : "") + "\nShu ma'lumotlar to'g'rimi? (Ha/Yo'q)";
     },
     confirmRejected: "Mayli, agar biror narsani o'zgartirish kerak bo'lsa, qaytadan yozishingiz mumkin 😊",
     escalateNote: "Kechirasiz, menimcha sizga inson yordami kerak bo'ladi 🙏 Sizni operatorga ulayapman.",
@@ -82,13 +76,9 @@ const T = {
     askAnotherProduct: "Какой ещё товар нужен? 😊",
     askQuantitySingle: function (product) { return "Сколько штук \"" + product + "\" нужно? 📦"; },
     askQuantityBudget: function (name) { return "У нас есть несколько видов \"" + name + "\". Сколько штук нужно и примерный бюджет?"; },
-    recommend: function (variant, price, overBudget) { return "Нашёл вариант: " + variant.name + ". Подходит?"; },
-    altBtn: "Другой вариант",
-    continueBtn: "Продолжить",
+    recommend: function (variant, price, overBudget) { return "Нашёл вариант: " + variant.name + ". Подходит? Напишите 'да' или 'другой'."; },
     noMoreAlternatives: "Больше вариантов нет. Продолжаем.",
-    askAddMore: "Хотите добавить ещё товар?",
-    addMoreBtn: "Да",
-    noMoreBtn: "Нет",
+    askAddMore: "Хотите добавить ещё товар? Напишите 'да' или 'нет'.",
     askDeadline: "К какому сроку нужен заказ? ⏰",
     askPhone: "Отправьте номер телефона 📱",
     invalidPhone: "Номер неверен 🤔",
@@ -96,26 +86,23 @@ const T = {
     needMoreQty: "Уточните количество.",
     needMoreQtyBudget: "Уточните количество штук.",
     cancelled: "Отменено 😊",
-    cancelBtn: "Отмена",
-    confirmBtn: "Подтвердить",
-    confirmOrder: function (summary, total) { return "Проверьте заказ 📋\n\n" + summary; },
+    confirmOrder: function (summary, total) { return "Проверьте заказ 📋\n\n" + summary + "\nВсё верно? (Да/Нет)"; },
     confirmRejected: "Хорошо, начните заново 😊",
     escalateNote: "Извините, подключаю оператора 🙏",
     done: function (d) { return "Спасибо! Заказ принят ✅"; }
   },
 };
 
-// --- XOTIRANI SAQLOVCHI FUNKSIYA ---
-// Bot qanday javob bersa ham, shu funksiya orqali o'tadi va xotiraga "assistant" sifatida yoziladi.
-function botReply(session, text, quickReplies, opts = {}) {
+// Bot qanday javob bersa ham, shu funksiya orqali o'tadi va xotiraga yoziladi (Tugmalarsiz versiya)
+function botReply(session, text, opts = {}) {
   if (session && text) {
     session.history.push({ role: "assistant", content: text });
-    // Xotira to'lib ketib xato bermasligi uchun faqat oxirgi 20 ta xabarni saqlaymiz
     if (session.history.length > 20) {
       session.history = session.history.slice(-20);
     }
   }
-  return { text: text, quickReplies: quickReplies || [], ...opts };
+  // quickReplies array bo'sh qoldiriladi
+  return { text: text, quickReplies: [], ...opts };
 }
 
 function findVariants(name) {
@@ -218,13 +205,6 @@ function isWithinWorkHours() {
   }
 }
 
-function cancelBtn(lang) { return { title: T[lang].cancelBtn, payload: "CANCEL|" + lang }; }
-function addMoreBtn(lang) { return { title: T[lang].addMoreBtn, payload: "ADDMORE|" + lang }; }
-function noMoreBtn(lang) { return { title: T[lang].noMoreBtn, payload: "NOMORE|" + lang }; }
-function altBtn(lang) { return { title: T[lang].altBtn, payload: "ALTVARIANT|" + lang }; }
-function continueBtn(lang) { return { title: T[lang].continueBtn, payload: "CONTVARIANT|" + lang }; }
-function confirmBtn(lang) { return { title: T[lang].confirmBtn, payload: "CONFIRMORDER|" + lang }; }
-
 function isActive(senderId) { return sessions.has(senderId); }
 function cancel(senderId) { sessions.delete(senderId); }
 function cancelText(lang) { return { text: T[lang].cancelled, quickReplies: [] }; }
@@ -240,13 +220,13 @@ function escalateToOperator(senderId, lang, session) {
   sessions.delete(senderId);
   const r = responses.operator[lang] || responses.operator.uz;
   const note = T[lang].escalateNote + "\n\n" + r.text;
-  return botReply(session, note, r.quickReplies);
+  return botReply(session, note);
 }
 
 function start(senderId, lang) {
   if (!config.ai.apiKey) {
     const r = responses.order[lang] || responses.order.uz;
-    return { text: r.text, quickReplies: r.quickReplies };
+    return { text: r.text, quickReplies: [] };
   }
   const profile = customerProfiles.get(senderId);
   const data = { items: [] };
@@ -256,7 +236,7 @@ function start(senderId, lang) {
   sessions.set(senderId, session);
   
   const text = data.name ? T[lang].askProductOnly(data.name) : T[lang].askNameProduct;
-  return botReply(session, text, [cancelBtn(lang)]);
+  return botReply(session, text);
 }
 
 async function startWithText(senderId, lang, text) {
@@ -284,12 +264,12 @@ async function processNameProduct(senderId, session, text, lang) {
     if (result.needs_clarification && result.clarification_question) {
       session.clarifyCount += 1;
       if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
-      return botReply(session, result.clarification_question, [cancelBtn(lang)]);
+      return botReply(session, result.clarification_question);
     }
   }
 
   if (!session.data.product) {
-    return botReply(session, T[lang].needMoreNameProduct, [cancelBtn(lang)]);
+    return botReply(session, T[lang].needMoreNameProduct);
   }
 
   if (session.data.name) customerProfiles.set(senderId, { name: session.data.name });
@@ -301,12 +281,12 @@ async function processNameProduct(senderId, session, text, lang) {
     session.variants = variants;
     session.data.rejectedCodes = [];
     session.step = "quantity_budget";
-    return botReply(session, T[lang].askQuantityBudget(session.data.product), [cancelBtn(lang)]);
+    return botReply(session, T[lang].askQuantityBudget(session.data.product));
   }
 
   session.variants = variants;
   session.step = "quantity_single";
-  const resp = botReply(session, T[lang].askQuantitySingle(session.data.product), [cancelBtn(lang)]);
+  const resp = botReply(session, T[lang].askQuantitySingle(session.data.product));
   if (variants[0] && variants[0].image) resp.image = variants[0].image;
   return resp;
 }
@@ -350,7 +330,7 @@ async function handleMessage(senderId, text, lang) {
       session.clarifyCount += 1;
       if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
       const q = result.clarification_question || T[lang].needMoreQty;
-      return botReply(session, q, [cancelBtn(lang)]);
+      return botReply(session, q);
     } else {
       quantity = result.quantity;
     }
@@ -366,7 +346,7 @@ async function handleMessage(senderId, text, lang) {
     }
     session.data.items.push(item);
     session.step = "add_more";
-    return botReply(session, T[lang].askAddMore, [addMoreBtn(lang), noMoreBtn(lang)]);
+    return botReply(session, T[lang].askAddMore);
   }
 
   if (session.step === "quantity_budget") {
@@ -381,12 +361,12 @@ async function handleMessage(senderId, text, lang) {
       if (result.needs_clarification && result.clarification_question) {
         session.clarifyCount += 1;
         if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
-        return botReply(session, result.clarification_question, [cancelBtn(lang)]);
+        return botReply(session, result.clarification_question);
       }
     }
 
     if (!session.data.quantity) {
-      return botReply(session, T[lang].needMoreQtyBudget, [cancelBtn(lang)]);
+      return botReply(session, T[lang].needMoreQtyBudget);
     }
 
     session.clarifyCount = 0;
@@ -400,14 +380,14 @@ async function handleMessage(senderId, text, lang) {
     session.data.pendingQty = qtyNum;
     session.step = "confirm_variant";
     
-    const resp = botReply(session, T[lang].recommend(rec.variant, rec.price, rec.overBudget), [altBtn(lang), continueBtn(lang)]);
+    const resp = botReply(session, T[lang].recommend(rec.variant, rec.price, rec.overBudget));
     if (rec.variant.image) resp.image = rec.variant.image;
     return resp;
   }
 
   if (session.step === "confirm_variant") {
     session.history.push({ role: "user", content: text });
-    const wantsAlternative = /boshqa|другой/i.test(text || "");
+    const wantsAlternative = /boshqa|другой|boshqasini/i.test(text || "");
 
     if (wantsAlternative) {
       session.data.rejectedCodes.push(session.data.pendingRecommendation.variant.code);
@@ -415,34 +395,36 @@ async function handleMessage(senderId, text, lang) {
       if (!rec) {
         pushCurrentItem(session);
         session.step = "add_more";
-        return botReply(session, T[lang].noMoreAlternatives + "\n\n" + T[lang].askAddMore, [addMoreBtn(lang), noMoreBtn(lang)]);
+        return botReply(session, T[lang].noMoreAlternatives + "\n\n" + T[lang].askAddMore);
       }
       session.data.pendingRecommendation = rec;
-      const resp = botReply(session, T[lang].recommend(rec.variant, rec.price, rec.overBudget), [altBtn(lang), continueBtn(lang)]);
+      const resp = botReply(session, T[lang].recommend(rec.variant, rec.price, rec.overBudget));
       if (rec.variant.image) resp.image = rec.variant.image;
       return resp;
     }
 
     pushCurrentItem(session);
     session.step = "add_more";
-    return botReply(session, T[lang].askAddMore, [addMoreBtn(lang), noMoreBtn(lang)]);
+    return botReply(session, T[lang].askAddMore);
   }
 
   if (session.step === "add_more") {
     session.history.push({ role: "user", content: text });
     const trimmed = (text || "").trim();
+    // Mijoz "ha", "yana" kabi so'zlarni yozsa, yangi mahsulot qo'shish jarayoniga o'tadi
     const wantsMore = /^(ha\b|xa\b|yana|qo'sh|qosh|да)/i.test(trimmed);
 
     if (wantsMore) {
       session.step = "name_product";
       session.clarifyCount = 0;
       delete session.data.product;
-      return botReply(session, T[lang].askAnotherProduct, [cancelBtn(lang)]);
+      return botReply(session, T[lang].askAnotherProduct);
     }
 
+    // Yo'q desa muddatga o'tadi
     session.step = "deadline";
     session.clarifyCount = 0;
-    return botReply(session, T[lang].askDeadline, [cancelBtn(lang)]);
+    return botReply(session, T[lang].askDeadline);
   }
 
   if (session.step === "deadline") {
@@ -455,7 +437,7 @@ async function handleMessage(senderId, text, lang) {
       session.clarifyCount += 1;
       if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
       const q = result.clarification_question || T[lang].askDeadline;
-      return botReply(session, q, [cancelBtn(lang)]);
+      return botReply(session, q);
     } else {
       session.data.deadline = result.deadline;
     }
@@ -464,32 +446,32 @@ async function handleMessage(senderId, text, lang) {
     session.step = "confirm_order";
     const summary = summarizeItems(session.data.items, lang);
     const total = calcGrandTotal(session.data.items);
-    return botReply(session, T[lang].confirmOrder(summary, total), [confirmBtn(lang), cancelBtn(lang)]);
+    return botReply(session, T[lang].confirmOrder(summary, total));
   }
 
   if (session.step === "confirm_order") {
     session.history.push({ role: "user", content: text });
-    const rejected = /^(yo'?q|нет)/i.test((text || "").trim());
+    const rejected = /^(yo'?q|net|no)/i.test((text || "").trim());
     if (rejected) {
       sessions.delete(senderId);
       return { text: T[lang].confirmRejected, quickReplies: [] };
     }
     session.step = "phone";
-    return botReply(session, T[lang].askPhone, [cancelBtn(lang)]);
+    return botReply(session, T[lang].askPhone);
   }
 
   if (session.step === "phone") {
     session.history.push({ role: "user", content: text });
     const phone = normalizePhone(text);
     if (!phone) {
-      return botReply(session, T[lang].invalidPhone, [cancelBtn(lang)]);
+      return botReply(session, T[lang].invalidPhone);
     }
     session.data.phone = phone;
     session.data.orderId = generateOrderId();
     const data = session.data;
     
     const finalMsg = T[lang].done(data);
-    sessions.delete(senderId); // Xarid tugadi, sessiyani o'chiramiz
+    sessions.delete(senderId);
     return { text: finalMsg, quickReplies: [], finished: true, order: data };
   }
 
@@ -497,12 +479,4 @@ async function handleMessage(senderId, text, lang) {
   return null;
 }
 
-const BUTTON_TEXT_MAP = {
-  addmore: "ha",
-  nomore: "yo'q",
-  altvariant: "boshqa",
-  contvariant: "davom etish",
-  confirmorder: "ha",
-};
-
-module.exports = { isActive: isActive, start: start, startWithText: startWithText, cancel: cancel, cancelText: cancelText, handleMessage: handleMessage, BUTTON_TEXT_MAP: BUTTON_TEXT_MAP };
+module.exports = { isActive: isActive, start: start, startWithText: startWithText, cancel: cancel, cancelText: cancelText, handleMessage: handleMessage };
