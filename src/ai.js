@@ -1,7 +1,5 @@
-// AI (OpenAI API) integratsiyasi.
-// Buyurtma jarayonida mijoz erkin yozgan matndan ism, mahsulot, soni va muddatni
-// ajratib oladi; agar noaniq/xato yozilgan bo'lsa, aniqlashtiruvchi savol qaytaradi.
-// Faqat korporativ sovg'alar doirasida ishlaydi (B2B savdo menejeri logikasi).
+// AI (OpenAI API) integratsiyasi - "Aqlli Sotuvchi" versiyasi.
+// Mijoz bilan tabiiy suhbatlashadi, savollarga javob beradi va ehtiyotkorlik bilan xaridga yetaklaydi.
 
 const config = require("./config");
 
@@ -12,30 +10,8 @@ function langName(lang) {
   return lang === "ru" ? "rus" : "o'zbek";
 }
 
-// --- Oddiy himoya (Rate Limit) ---
-const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
-const RATE_LIMIT_MAX = 12;
-const rateMap = new Map();
-
-function isRateLimited(senderId) {
-  if (!senderId) return false;
-  const now = Date.now();
-  const entry = rateMap.get(senderId);
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateMap.set(senderId, { count: 1, windowStart: now });
-    return false;
-  }
-  entry.count += 1;
-  if (entry.count > RATE_LIMIT_MAX) {
-    console.warn("AI so'rov chegarasi oshdi: " + senderId);
-    return true;
-  }
-  return false;
-}
-
-// AI API ulanish qismi
 async function callTool(senderId, instructions, history, tool) {
-  if (!config.ai.apiKey || isRateLimited(senderId)) return null;
+  if (!config.ai.apiKey) return null;
 
   try {
     const res = await fetch(API_URL, {
@@ -75,40 +51,59 @@ async function callTool(senderId, instructions, history, tool) {
   }
 }
 
-// Asosiy B2B System Prompt (Menejer xarakteri)
+// ==========================================
+// ASOSIY "AQL" VA XARAKTER SOZLAMASI (SYSTEM PROMPT)
+// ==========================================
 const BASE_SYSTEM_PROMPT = `
 [ROLE]
-Sen "Gift Master" kompaniyasining B2B korporativ sovg'alar bo'yicha katta savdo menejerisan. Suhbatdoshing asosan tadbirkorlar va menejerlar. Muomala professional va hurmat bilan bo'lishi shart.
+Sen "Gift Master" kompaniyasining B2B korporativ sovg'alar bo'yicha malakali, xushmuomala va tirik savdo menejerisan. Maqsading — mijoz bilan huddi haqiqiy insondek tabiiy suhbatlashish, ularni qiziqtirish va ehtiyojini aniqlab, xaridgacha olib borish.
 
-[STRICT CONSTRAINTS]
-1. Sening YAGONA maqsading — mijoz so'rovidan buyurtma detallarini (mahsulot, soni, byudjet, muddat) aniqlab olish.
-2. Agar mijoz siyosat, dasturlash, havo rayi yoki sovg'alarga aloqador bo'lmagan MA'NOSIZ gap yozsa:
-   - needs_clarification=true qil.
-   - clarification_question ichiga faqat shunday yoz: "Kechirasiz, men faqat korporativ sovg'alar va mahsulotlar bo'yicha yordam bera olaman. Sizga katalogimizdan nima kerak?"
-3. Sun'iy identifikatorlar (Menejer:, Bot:) ishlatma. Mijoz bilan qisqa va aniq gaplash.
+[CATALOG & CATEGORIES]
+Bizda asosan quyidagi mahsulotlar bor:
+1. Ryukzaklar va Shopperlar
+2. Sovg'abop to'plamlar (VIP va Eko naborlar)
+3. Biznes aksessuarlar (Kartxolder, vizitnitsa, portmone)
+4. Breloklar va Fleshkalar
+5. Soyabonlar (Zontik)
+6. Bayroqlar (Stol usti va ko'cha)
+7. Plaketkalar, Statuyetkalar va Tarelka mukofotlari
+8. Znachoklar va Beydjiklar
+9. Poligrafiya va Paketlar (Kalendar, buklet, ruchka, kubarik)
+
+[SALES LOGIC - MUHIM]
+- Agar mijoz "Sizlarda nimalar bor?" deb so'rasa, toifalarni sanab ber: "Bizda ruchka, ejednevnik, zontik, kepka va turli to'plamlar bor. Sizni aynan qaysi mahsulotimiz qiziqtiryapti?".
+- Mijoz aniq mahsulot so'rasa, uning tavsifini va narxini ayt. Narxlar miqdorga (tirajga) qarab arzonlashishini tushuntirib o't.
+- Hamma mijoz ham nima xohlashini bilmaydi, ularga savol berib (Budjet qancha? Kimga sovg'a qilyapsiz?) yo'l ko'rsat.
+
+[VALIDATION (XATOLARNING OLDINI OLISH)]
+- Agar sen mijozdan "Ismingiz nima?" yoki "Nechta kerak?" deb so'rasang, lekin mijoz BOSHQA SAVOL bersa (Masalan: "Ruchka ham bormi?"), bu savolni uning ismi yoki soni deb qabul qilib ketma! 
+- Bunday paytda ism/soni maydonini bo'sh (null) qoldirib, needs_clarification=true qil va oldin uning savoliga javob ber. Keyin sekin yana ismini yoki miqdorini so'ra.
+
+[OFF-TOPIC HANDLING (BOSHQA MAVZULAR)]
+- Agar mijoz umuman boshqa mavzuda savol bersa (ob-havo, dasturlash va h.k.), dastlabki 2-3 ta savoliga qisqa va mantiqiy javob beraver. Lekin javob oxirida har doim "Aytgancha, sovg'alar bo'yicha..." deb mavzuni savdoga burishga harakat qil.
+- Agar mijoz qatorasiga 4 martadan ortiq umuman boshqa mavzuda gapiraversa, shunday deb javob ber: "Uzr, men asosan korporativ sovg'alar bo'yicha mutaxassisman. Keling, yaxshisi sizga sovg'alarimiz haqida ma'lumot beray."
 `;
 
+// 1. Ism va Mahsulotni aniqlash
 async function extractNameAndProduct(senderId, history, lang, current) {
   current = current || {};
   const catalogNames = [...new Set(config.catalog.map(p => p.name))];
   
   const productsHint = catalogNames.length
-    ? `Do'konda sotiladigan mahsulotlar: ${catalogNames.join(", ")}. ` +
-      `Agar mijoz aytgan mahsulot shu ro'yxatga umuman tushmasa, needs_clarification=true qil va ro'yxatdagi mahsulotlarni taklif qil. ` +
-      `Agar ro'yxatdagi biror mahsulotga xato yozilgan bo'lsa ham aynan to'g'ri nomini product maydoniga yoz.`
+    ? `Do'kon bazasi: ${catalogNames.join(", ")}. Mijoz qaysi birini nazarda tutganini aniqla.`
     : `Mijoz aytgan mahsulot nomini aniqlang.`;
 
   const instructions = [
     BASE_SYSTEM_PROMPT,
     productsHint,
     `Hozircha ma'lum: ism = ${current.name || "noma'lum"}, mahsulot = ${current.product || "noma'lum"}.`,
-    `Agar ism yoki mahsulot aniq bo'lmasa, needs_clarification=true qil va clarification_question ichida ${langName(lang)} tilida qisqa savol ber.`
+    `DIQQAT: Agar mijoz sening savolingga javob bermay, o'zi savol bersa, uni ism/mahsulot deb o'ylama. needs_clarification=true qil va savoliga javob ber.`
   ].join("\n");
 
   const tool = {
     type: "function",
     name: "extract_order_info",
-    description: "Mijozdan ism va mahsulotni ajratib oladi.",
+    description: "Mijozdan ism va mahsulotni ajratadi yoki mijozning savollariga tabiiy javob beradi.",
     strict: true,
     parameters: {
       type: "object",
@@ -116,7 +111,7 @@ async function extractNameAndProduct(senderId, history, lang, current) {
         name: { type: ["string", "null"] },
         product: { type: ["string", "null"] },
         needs_clarification: { type: "boolean" },
-        clarification_question: { type: ["string", "null"] },
+        clarification_question: { type: ["string", "null"], description: "Mijozning savoliga javob va keyingi mantiqiy savol." },
       },
       required: ["name", "product", "needs_clarification", "clarification_question"],
       additionalProperties: false,
@@ -126,20 +121,20 @@ async function extractNameAndProduct(senderId, history, lang, current) {
   return callTool(senderId, instructions, history, tool);
 }
 
+// 2. Miqdorni aniqlash
 async function extractQuantityOnly(senderId, history, lang, current) {
   current = current || {};
   
   const instructions = [
     BASE_SYSTEM_PROMPT,
-    `Vazifang: mijozdan kerakli mahsulot sonini ajratib olish.`,
     `Hozircha ma'lum: soni = ${current.quantity || "noma'lum"}.`,
-    `Agar soni noma'lum bo'lsa, needs_clarification=true qil va savol ber.`
+    `DIQQAT: Agar mijoz "100 ta" desa, needs_clarification=false qil. Agar u "Narxi qancha?" yoki shunga o'xshash savol bersa, quantity maydonini null qilib, needs_clarification=true qil va savoliga javob ber!`
   ].join("\n");
 
   const tool = {
     type: "function",
     name: "extract_quantity",
-    description: "Mijozdan mahsulot sonini so'raydi.",
+    description: "Mijozdan mahsulot sonini aniqlaydi.",
     strict: true,
     parameters: {
       type: "object",
@@ -156,13 +151,13 @@ async function extractQuantityOnly(senderId, history, lang, current) {
   return callTool(senderId, instructions, history, tool);
 }
 
+// 3. Byudjet va Soni
 async function extractQuantityAndBudget(senderId, history, lang, current) {
   current = current || {};
   
   const instructions = [
     BASE_SYSTEM_PROMPT,
-    `Vazifang: mijozdan soni va taxminiy narx/byudjetni ajratib olish.`,
-    `Hozircha ma'lum: soni = ${current.quantity || "noma'lum"}, byudjet = ${current.budget || "noma'lum"}.`
+    `Hozircha ma'lum: soni = ${current.quantity || "noma'lum"}, byudjet = ${current.budget || "noma'lum"}.`,
   ].join("\n");
 
   const tool = {
@@ -186,10 +181,12 @@ async function extractQuantityAndBudget(senderId, history, lang, current) {
   return callTool(senderId, instructions, history, tool);
 }
 
+// 4. Muddatni aniqlash
 async function extractDeadline(senderId, history, lang) {
   const instructions = [
     BASE_SYSTEM_PROMPT,
-    `Vazifang: mijozdan muddatni (qachongacha tayyor bo'lishini) ajratib olish.`
+    `Vazifang: mijozdan muddatni (qachongacha tayyor bo'lishini) ajratib olish.`,
+    `Agar mijoz "Qancha vaqtda qilasizlar?" deb so'rasa, "Miqdorga qarab 2 kundan 7 kungacha" deb javob ber (needs_clarification=true).`
   ].join("\n");
 
   const tool = {
