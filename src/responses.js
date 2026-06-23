@@ -1,108 +1,88 @@
 // Javob matnlari (O'zbek + Rus). Do'kon ma'lumotlari config'dan keladi.
-// Har bir javob: { text, quickReplies: [{title, payload}] }
-// payload format: "INTENT|lang"  (masalan: "DELIVERY|uz")
+// Tugmalar (Quick Replies) to'liq olib tashlandi. Erkin suhbat rejimiga o'tkazildi.
 
 module.exports = function buildResponses(b) {
-  // Quick reply tugmalar (tilga qarab). Katalog tugmasi olib tashlandi.
-  const btn = (lang) => ({
-    delivery: { title: lang === "ru" ? "Доставка" : "Yetkazib berish", payload: `DELIVERY|${lang}` },
-    order: { title: lang === "ru" ? "Заказать" : "Buyurtma berish", payload: `ORDER|${lang}` },
-    operator: { title: lang === "ru" ? "Оператор" : "Operator", payload: `OPERATOR|${lang}` },
-  });
-  const U = btn("uz");
-  const R = btn("ru");
-
   return {
     welcome: {
       uz: {
         text:
           `Assalomu alaykum! 👋 ${b.shopName}ga xush kelibsiz!\n` +
           `Men avtomat yordamchiman 🤖 Sizga qanday yordam bera olaman?\n` +
-          `Quyidagidan birini tanlang yoki savolingizni yozing 👇`,
-        quickReplies: [U.delivery, U.order, U.operator],
+          `Nima izlayotganingizni yoki savolingizni bemalol yozavering 👇`,
+        quickReplies: [],
       },
       ru: {
         text:
           `Здравствуйте! 👋 Добро пожаловать в ${b.shopName}!\n` +
-          `Я автоматический помощник 🤖 Чем могу помочь?\n` +
-          `Выберите вариант или напишите свой вопрос 👇`,
-        quickReplies: [R.delivery, R.order, R.operator],
+          `Я ваш помощник 🤖 Чем могу помочь?\n` +
+          `Просто напишите, что вы ищете или ваш вопрос 👇`,
+        quickReplies: [],
       },
     },
 
     delivery: {
       uz: {
         text:
-          `Yetkazib berish 🚚\n` +
+          `Yetkazib berish bo'yicha ma'lumot 🚚\n\n` +
           `• ${b.deliveryTashkent}\n` +
           `• ${b.deliveryRegion}\n` +
-          `• ${b.selfPickup}\n` +
-          `Buyurtma bermoqchi bo'lsangiz, "Buyurtma berish" tugmasini bosing 📦`,
-        quickReplies: [U.order, U.operator],
+          `• ${b.selfPickup}\n\n` +
+          `Buyurtma bermoqchi bo'lsangiz, shunchaki nima kerakligini yozing 📦`,
+        quickReplies: [],
       },
       ru: {
         text:
-          `Доставка 🚚\n` +
+          `Информация о доставке 🚚\n\n` +
           `• ${b.deliveryTashkent}\n` +
           `• ${b.deliveryRegion}\n` +
-          `• ${b.selfPickup}\n` +
-          `Если хотите сделать заказ, нажмите «Заказать» 📦`,
-        quickReplies: [R.order, R.operator],
+          `• ${b.selfPickup}\n\n` +
+          `Если хотите сделать заказ, просто напишите, что вам нужно 📦`,
+        quickReplies: [],
       },
     },
 
-    // Bu javob faqat ANTHROPIC_API_KEY sozlanmagan holatda ishlatiladi (zaxira rejim).
-    // AI sozlangan bo'lsa, buyurtma server.js / orderFlow.js orqali bosqichma-bosqich olinadi.
     order: {
       uz: {
         text:
           `Buyurtma berish juda oson! 🛒\n` +
-          `Iltimos, quyidagilarni yozing:\n` +
-          `① Mahsulot nomi va soni\n` +
-          `② Ism va telefon raqamingiz\n` +
-          `③ Yetkazib berish manzili\n` +
-          `Ma'lumotlarni yuborgach, operatorimiz siz bilan bog'lanadi ✅`,
-        quickReplies: [U.operator],
+          `Sizga qaysi mahsulotimizdan va nechta kerak bo'ladi? Yozib yuboring, hisoblab beraman ✅`,
+        quickReplies: [],
       },
       ru: {
         text:
           `Оформить заказ очень просто! 🛒\n` +
-          `Пожалуйста, напишите:\n` +
-          `① Название и количество товара\n` +
-          `② Ваше имя и номер телефона\n` +
-          `③ Адрес доставки\n` +
-          `После отправки данных наш оператор свяжется с вами ✅`,
-        quickReplies: [R.operator],
+          `Какой товар и в каком количестве вам нужен? Напишите, и я всё рассчитаю ✅`,
+        quickReplies: [],
       },
     },
 
     payment: {
       uz: {
         text: `To'lov usullari 💳\n${b.paymentMethods}\nQaysi usul qulay bo'lsa, shuni tanlashingiz mumkin 😊`,
-        quickReplies: [U.order, U.operator],
+        quickReplies: [],
       },
       ru: {
         text: `Способы оплаты 💳\n${b.paymentMethods}\nВыбирайте удобный для вас способ 😊`,
-        quickReplies: [R.order, R.operator],
+        quickReplies: [],
       },
     },
 
     contact: {
       uz: {
         text:
-          `Aloqa ma'lumotlari 📞\n` +
+          `Aloqa ma'lumotlarimiz 📞\n\n` +
           `🕐 Ish vaqti: ${b.workHours}\n` +
           `📱 Telefon: ${b.phone}\n` +
           `📍 Manzil: ${b.address}`,
-        quickReplies: [U.operator],
+        quickReplies: [],
       },
       ru: {
         text:
-          `Контакты 📞\n` +
+          `Наши контакты 📞\n\n` +
           `🕐 Время работы: ${b.workHours}\n` +
           `📱 Телефон: ${b.phone}\n` +
           `📍 Адрес: ${b.address}`,
-        quickReplies: [R.operator],
+        quickReplies: [],
       },
     },
 
@@ -127,14 +107,14 @@ module.exports = function buildResponses(b) {
       uz: {
         text:
           `Kechirasiz, savolingizni to'liq tushunmadim 🤔\n` +
-          `Quyidagidan birini tanlang yoki "operator" deb yozing — jonli xodim yordam beradi 👇`,
-        quickReplies: [U.order, U.operator],
+          `Iltimos, so'rovingizni boshqacharoq yozib ko'ring yoki "operator" deb yozing — jonli xodim yordam beradi 👇`,
+        quickReplies: [],
       },
       ru: {
         text:
           `Извините, не совсем понял ваш вопрос 🤔\n` +
-          `Выберите вариант ниже или напишите «оператор» — поможет живой сотрудник 👇`,
-        quickReplies: [R.order, R.operator],
+          `Пожалуйста, перефразируйте запрос или напишите «оператор» — поможет живой сотрудник 👇`,
+        quickReplies: [],
       },
     },
   };
