@@ -23,16 +23,10 @@ function apiUrl() {
   )}`;
 }
 
-// Mijozga javob xabarini yuborish (matn + ixtiyoriy quick reply tugmalar).
-async function sendMessage(recipientId, response) {
-  const message = { text: response.text };
-  if (response.quickReplies && response.quickReplies.length) {
-    message.quick_replies = response.quickReplies.slice(0, 13).map((q) => ({
-      content_type: "text",
-      title: q.title.slice(0, 20),
-      payload: q.payload,
-    }));
-  }
+// Mijozga javob xabarini yuborish.
+// DIQQAT: Hech qanday tugmalar (quick_replies) ishlatilmaydi!
+async function sendMessage(recipientId, text) {
+  const message = { text: text };
 
   const body = {
     recipient: { id: recipientId },
@@ -41,7 +35,7 @@ async function sendMessage(recipientId, response) {
   };
 
   if (config.dryRun) {
-    console.log("[DRY_RUN] →", recipientId, JSON.stringify(message));
+    console.log("[DRY_RUN] →", recipientId, text);
     return { dryRun: true };
   }
 
@@ -60,7 +54,7 @@ async function sendMessage(recipientId, response) {
   }
 }
 
-// "Ko'rildi" belgisini yuborish (ixtiyoriy, foydalanuvchi tajribasi uchun).
+// "Ko'rildi" belgisini yuborish (foydalanuvchi tajribasi uchun).
 async function markSeen(recipientId) {
   if (config.dryRun || !config.pageAccessToken) return;
   try {
@@ -74,7 +68,7 @@ async function markSeen(recipientId) {
   }
 }
 
-// Mahsulot rasmini (havola orqali) yuborish.
+// Mahsulot rasmini (havola orqali) yuborish (8-band).
 async function sendImage(recipientId, imageUrl) {
   if (!imageUrl) return;
 
