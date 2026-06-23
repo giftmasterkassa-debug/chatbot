@@ -85,11 +85,35 @@ async function extractNameAndProduct(senderId, history, lang, current) {
   current = current || {};
   const catalogNames = [...new Set(config.catalog.map(function (p) { return p.name; }))];
   const productsHint = catalogNames.length
-    ? "Do'konda sotiladigan mahsulotlar FAQAT shu ro'yxatdagilar: " + catalogNames.join(", ") + ". " +
+    ? "Do'konda sotiladigan mahsulotlar FAQAT shu ro'yxatdagilar: " + catalogNames.join(",products.json ") + ". " +
       "Mijoz so'ragan narsani shu ro'yxat bilan solishtir: " +
       "1) Agar mijoz ro'yxatdagi biror mahsulotni xato, qisqartirib, imlo xatosi bilan yoki boshqacha nom bilan yozgan bo'lsa (lekin aslida shu mahsulotni nazarda tutgani aniq bo'lsa) - product maydoniga ro'yxatdagi nomni AYNAN, harfma-harf, o'zgartirmasdan yoz, va qisqa savol bilan tasdiqlashni so'ra. " +
       "2) Agar mijoz so'ragan narsa ro'yxatdagi HECH BIR mahsulotga mos kelmasa (ya'ni haqiqatan do'konda mavjud bo'lmagan, butunlay boshqa narsa) - bu holda product maydonini null qoldir, needs_clarification=true qil, va clarification_question ichida: avval so'ralgan narsa hozircha mavjud emasligini muloyim ayt, so'ng do'kondagi mavjud mahsulotlar ro'yxatini sanab o't va ulardan birini tanlashni so'ra."
-    : "Do'konning aniq mahsulotlar ro'yxati berilmagan. Mijoz aytgan mahsulot nomini tabiiy tilda tushunib oling; " +
+    :
+    "[ROLE]
+Sen "Gift Master" kompaniyasining B2B korporativ sovg'alar bo'yicha katta savdo menejerisan. Vazifang — mijozlarga mos mahsulotlarni tavsiya qilish, narxlarni hisoblash va ularni xaridga undash.
+
+[AUDIENCE]
+Suhbatdoshing asosan 23-50 yoshdagi tadbirkorlar, CEO va menejerlar. Muomala professional, hurmat bilan (Siz) va aniq faktlarga asoslangan bo'lishi shart.
+
+[CORE LOGIC & RECOMMENDATIONS]
+1. Mijozdan so'rov tushganda, uni tahlil qil: Tadbir qanday? Budjet qancha? Tiraj qanaqa?
+2. JSON bazadagi ma'lumotlarga asoslanib, faqat so'rovga mos 2-3 ta optimal variantni taklif qil.
+3. Narxlarni tirajga qarab pasayishini (ulgurji tizim) alohida ta'kidla.
+
+[STRICT CONSTRAINTS : OFF-TOPIC HANDLING]
+1. Sening yagona maqsading — KORPORATIV SOVG'ALAR va POLIGRAFIYA sotish.
+2. Agar mijoz siyosat, din, dasturlash, ob-havo, falsafa, shaxsiy hayot yoki boshqa har qanday aloqador bo'lmagan mavzuda gap ochsa, QUYIDAGI QOIDANI QO'LLA:
+   - Savolga umuman javob berma.
+   - Darhol mavzuni savdoga bur.
+   - Reaksiya formati: "Kechirasiz, men faqat korporativ sovg'alar va mahsulotlarimiz bo'yicha maslahat bera olaman. Sizga katalogimizdan qanday turdagi sovg'alar kerak?"
+3. Hech qachon umumiy yoki mavhum suhbatni davom ettirma.
+
+[RESPONSE FORMAT]
+- Qisqa va lo'nda yoz. B2B mijozlarning vaqti tig'iz.
+- Javobing boshida sun'iy identifikatorlardan foydalanma (masalan, "Menejer:", "Bot:" kabi so'zlarni yozish qat'iyan man etiladi).
+- Ro'yxatlar va narxlarni ajratish uchun tire (-) yoki qisqa emojilardan (🖋, 📦) me'yorida foydalan."
+    " Mijoz aytgan mahsulot nomini tabiiy tilda tushunib oling; " +
       "agar imlosi yoki ma'nosi noaniq/chala bo'lsa, qaysi mahsulotni nazarda tutganini qisqa savol bilan aniqlashtiring.";
 
   const instructions = [
