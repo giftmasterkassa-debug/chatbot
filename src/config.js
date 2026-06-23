@@ -17,8 +17,7 @@ function list(name, def = []) {
     .filter(Boolean);
 }
 
-// Mahsulotlar katalogi: products.json fayldan o'qiladi (nom + narx pog'onalari + rasm).
-// Fayl topilmasa, .env dagi PRODUCTS (oddiy nomlar, narxsiz) zaxira sifatida ishlatiladi.
+// Mahsulotlar katalogi: products.json fayldan o'qiladi.
 function loadCatalog() {
   const filePath = path.join(__dirname, "products.json");
   try {
@@ -27,7 +26,7 @@ function loadCatalog() {
       if (Array.isArray(data)) return data;
     }
   } catch (e) {
-    console.error("⚠️  products.json o'qishda xato:", e.message);
+    console.error("⚠️ products.json o'qishda xato:", e.message);
   }
   return list("PRODUCTS", []).map((name) => ({ name, image: null, tiers: [] }));
 }
@@ -37,38 +36,33 @@ const config = {
 
   // Meta / Instagram
   verifyToken: val("VERIFY_TOKEN", "my_verify_token"),
-  appSecret: val("APP_SECRET", ""), // X-Hub-Signature-256 ni tekshirish uchun
-  pageAccessToken: val("PAGE_ACCESS_TOKEN", ""), // Send API uchun token
+  appSecret: val("APP_SECRET", ""),
+  pageAccessToken: val("PAGE_ACCESS_TOKEN", ""),
   graphHost: val("GRAPH_HOST", "graph.facebook.com"), // yoki graph.instagram.com
   graphVersion: val("GRAPH_API_VERSION", "v21.0"),
 
-  // Test rejimi: true bo'lsa, haqiqiy xabar yubormaydi, faqat konsolga yozadi
+  // Test rejimi
   dryRun: val("DRY_RUN", "false") === "true",
 
-  // Buyurtma qabul qilingach, do'kon egasi/operatorga ham Instagram orqali xabar yuborilsinmi?
-  // Bu yerga operatorning shaxsiy Instagram foydalanuvchi ID (PSID) raqami yoziladi.
-  // Bo'sh qoldirilsa - operatorga alohida xabar yuborilmaydi (faqat konsolga yoziladi).
   adminRecipientId: val("ADMIN_RECIPIENT_ID", ""),
 
   // --- AI (OpenAI API) ---
-  // Buyurtma jarayonida mijozning ismi, mahsuloti, soni va muddatini
-  // erkin yozilgan matndan tushunib, kerak bo'lsa aniqlashtirib so'rash uchun ishlatiladi.
-  // OPENAI_API_KEY bo'sh bo'lsa, bot eski (statik) buyurtma rejimida ishlaydi.
   ai: {
     apiKey: val("OPENAI_API_KEY", ""),
-    model: val("AI_MODEL", "gpt-5.4-mini"), // arzonroq variant: gpt-4.1-nano yoki gpt-5.4-nano
+    // DIQQAT: Mavjud bo'lmagan modellar olib tashlandi va rasmiy tejamkor model qo'yildi
+    model: val("AI_MODEL", "gpt-4o-mini"), 
   },
 
-  // Mahsulotlar katalogi (products.json yoki .env PRODUCTS dan) - nom, rasm, narx pog'onalari.
+  // Mahsulotlar katalogi
   catalog: loadCatalog(),
 
-  // Do'kon ma'lumotlari (javob matnlariga qo'yiladi)
+  // Do'kon ma'lumotlari
   business: {
     shopName: val("SHOP_NAME", "Gift Master"),
-    phone: val("PHONE", "+998 XX XXX XX XX"),
+    phone: val("PHONE", "+998 90 123 45 67"), // O'zingizning raqamingizni qo'ying
     workHours: val("WORK_HOURS", "9:00 - 18:00"),
-    address: val("ADDRESS", "[manzil]"),
-    catalogUrl: val("CATALOG_URL", "[katalog havolasi]"),
+    address: val("ADDRESS", "Toshkent shahar, Yunusobod"),
+    catalogUrl: val("CATALOG_URL", "https://t.me/giftmaster_katalog"), // Katalog ssilkasini qo'yasiz
     deliveryTashkent: val("DELIVERY_TASHKENT", "Toshkentga - Yandex Dostavka orqali"),
     deliveryRegion: val("DELIVERY_REGION", "Viloyatlarga - BTS pochta orqali"),
     selfPickup: val("SELF_PICKUP", "Yoki o'zingiz do'kondan olib ketishingiz mumkin"),
