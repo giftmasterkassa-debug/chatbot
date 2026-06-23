@@ -1,101 +1,35 @@
-// Instagram Send API bilan ishlash + webhook imzosini tekshirish.
-const crypto = require("crypto");
-const config = require("./config");
+// Til aniqlash moduli
+// Mijozlarning yozuv uslubi va alifbosini aniqroq farqlash uchun kengaytirildi.
 
-// Meta yuborgan X-Hub-Signature-256 ni APP_SECRET bilan tekshiramiz.
-function verifySignature(rawBody, signatureHeader) {
-  if (!config.appSecret) {
-    // APP_SECRET sozlanmagan bo'lsa, tekshirib bo'lmaydi (faqat test uchun).
-    return true;
+function detectLang(text) {
+  if (!text) return "uz";
+
+  const lowerText = text.toLowerCase();
+
+  // Rus tiliga xos belgilar
+  const russianChars = /[ыщэьъ]/;
+  // O'zbek kirill alifbosiga xos belgilar
+  const uzbekCyrillicChars = /[ўқғҳ]/;
+  // Umumiy kirill alifbosi
+  const cyrillic = /[а-яА-ЯёЁ]/;
+
+  // Agar matnda kirill harflari bo'lsa
+  if (cyrillic.test(lowerText)) {
+    // Agar o'zbek kirilliga xos harflar qatnashgan bo'lsa
+    if (uzbekCyrillicChars.test(lowerText)) {
+      return "uz"; // O'zbek tili (kirill yozuvida)
+    } 
+    // Agar aniq rus tiliga xos harflar bo'lsa
+    else if (russianChars.test(lowerText)) {
+      return "ru"; // Rus tili
+    }
+    // Boshqa qisqa kirill so'zlar bo'lsa ham AI matn mazmunidan o'zi tushunib oladi
+    // Lekin bazaviy holatda rus tili deb uzatamiz
+    return "ru";
   }
-  if (!signatureHeader) return false;
-  const expected =
-    "sha256=" +
-    crypto.createHmac("sha256", config.appSecret).update(rawBody).digest("hex");
-  const a = Buffer.from(expected);
-  const b = Buffer.from(signatureHeader);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+
+  // Qolgan barcha holatlarda (lotin yozuvi, xatolar, sheva) o'zbek tili deb qabul qilinadi
+  return "uz";
 }
 
-function apiUrl() {
-  return `https://${config.graphHost}/${config.graphVersion}/me/messages?access_token=${encodeURIComponent(
-    config.pageAccessToken
-  )}`;
-}
-
-// Mijozga javob xabarini yuborish.
-// DIQQAT: Hech qanday tugmalar (quick_replies) ishlatilmaydi!
-async function sendMessage(recipientId, text) {
-  const message = { text: text };
-
-  const body = {
-    recipient: { id: recipientId },
-    messaging_type: "RESPONSE",
-    message,
-  };
-
-  if (config.dryRun) {
-    console.log("[DRY_RUN] →", recipientId, text);
-    return { dryRun: true };
-  }
-
-  try {
-    const res = await fetch(apiUrl(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) console.error("Send API xatosi:", res.status, JSON.stringify(data));
-    return data;
-  } catch (e) {
-    console.error("Send API ulanish xatosi:", e.message);
-    return { error: e.message };
-  }
-}
-
-// "Ko'rildi" belgisini yuborish (foydalanuvchi tajribasi uchun).
-async function markSeen(recipientId) {
-  if (config.dryRun || !config.pageAccessToken) return;
-  try {
-    await fetch(apiUrl(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipient: { id: recipientId }, sender_action: "mark_seen" }),
-    });
-  } catch (_) {
-    /* e'tiborsiz qoldiramiz */
-  }
-}
-
-// Mahsulot rasmini (havola orqali) yuborish (8-band).
-async function sendImage(recipientId, imageUrl) {
-  if (!imageUrl) return;
-
-  const body = {
-    recipient: { id: recipientId },
-    messaging_type: "RESPONSE",
-    message: { attachment: { type: "image", payload: { url: imageUrl, is_reusable: true } } },
-  };
-
-  if (config.dryRun) {
-    console.log("[DRY_RUN][IMAGE] →", recipientId, imageUrl);
-    return { dryRun: true };
-  }
-
-  try {
-    const res = await fetch(apiUrl(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) console.error("Rasm yuborishda xato:", res.status, JSON.stringify(data));
-    return data;
-  } catch (e) {
-    console.error("Rasm yuborish ulanish xatosi:", e.message);
-    return { error: e.message };
-  }
-}
-
-module.exports = { verifySignature, sendMessage, markSeen, sendImage };
+module.exports = { detectLang };
