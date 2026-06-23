@@ -1,21 +1,20 @@
-// Javob matnlari (O'zbek + Rus). Do'kon ma'lumotlari config'dan keladi.
-// Tugmalar (Quick Replies) to'liq olib tashlandi. Erkin suhbat rejimiga o'tkazildi.
+// Javob matnlari (O'zbek + Rus). 
+// FAQAT STATIK MA'LUMOTLAR UCHUN ISHLATILADI. 
+// Asosiy suhbatni AI o'zi boshqaradi.
 
 module.exports = function buildResponses(b) {
   return {
     welcome: {
       uz: {
         text:
-          `Assalomu alaykum! 👋 ${b.shopName}ga xush kelibsiz!\n` +
-          `Men avtomat yordamchiman 🤖 Sizga qanday yordam bera olaman?\n` +
-          `Nima izlayotganingizni yoki savolingizni bemalol yozavering 👇`,
+          `Assalomu alaykum! 👋 ${b.shopName} korporativ sovg'alar do'koniga xush kelibsiz!\n` +
+          `Sizga qanday yordam bera olaman? Nima izlayotganingizni yoki qanday savolingiz borligini bemalol yozavering 👇`,
         quickReplies: [],
       },
       ru: {
         text:
-          `Здравствуйте! 👋 Добро пожаловать в ${b.shopName}!\n` +
-          `Я ваш помощник 🤖 Чем могу помочь?\n` +
-          `Просто напишите, что вы ищете или ваш вопрос 👇`,
+          `Здравствуйте! 👋 Добро пожаловать в магазин корпоративных подарков ${b.shopName}!\n` +
+          `Чем могу помочь? Просто напишите, что вы ищете или какой у вас вопрос 👇`,
         quickReplies: [],
       },
     },
@@ -89,16 +88,16 @@ module.exports = function buildResponses(b) {
     operator: {
       uz: {
         text:
-          `Sizni operatorimizga ulayapman 👤\n` +
-          `Iltimos, biroz kuting — tez orada javob beramiz.\n` +
-          `Ish vaqti: ${b.workHours}. Hozir dam olish vaqti bo'lsa, ertalab birinchi bo'lib javob beramiz! 🙏`,
+          `Sizni mutaxassisga yo'naltirdim 👤\n` +
+          `Iltimos, biroz kuting — tez orada sizga javob beradi.\n` +
+          `Ish vaqti: ${b.workHours}. Agar hozir dam olish vaqti bo'lsa, ertasi kuni ertalab birinchi bo'lib aloqaga chiqamiz! 🙏`,
         quickReplies: [],
       },
       ru: {
         text:
-          `Подключаю вас к оператору 👤\n` +
-          `Пожалуйста, подождите — ответим в ближайшее время.\n` +
-          `Время работы: ${b.workHours}. Если сейчас нерабочее время, ответим утром первыми! 🙏`,
+          `Я перевел вас на специалиста 👤\n` +
+          `Пожалуйста, подождите — он ответит вам в ближайшее время.\n` +
+          `Время работы: ${b.workHours}. Если сейчас нерабочее время, мы свяжемся с вами утром первыми! 🙏`,
         quickReplies: [],
       },
     },
@@ -106,14 +105,14 @@ module.exports = function buildResponses(b) {
     fallback: {
       uz: {
         text:
-          `Kechirasiz, savolingizni to'liq tushunmadim 🤔\n` +
-          `Iltimos, so'rovingizni boshqacharoq yozib ko'ring yoki "operator" deb yozing — jonli xodim yordam beradi 👇`,
+          `Kechirasiz, xabaringizni to'liq tushunmadim 🤔\n` +
+          `Iltimos, boshqacharoq yozib ko'ring yoki "operator" deb yozing 👇`,
         quickReplies: [],
       },
       ru: {
         text:
-          `Извините, не совсем понял ваш вопрос 🤔\n` +
-          `Пожалуйста, перефразируйте запрос или напишите «оператор» — поможет живой сотрудник 👇`,
+          `Извините, не совсем понял ваше сообщение 🤔\n` +
+          `Пожалуйста, перефразируйте или напишите «оператор» 👇`,
         quickReplies: [],
       },
     },
