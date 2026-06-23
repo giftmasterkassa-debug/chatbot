@@ -64,27 +64,43 @@ app.post("/webhook", (req, res) => {
   for (const entry of body.entry || []) {
     const events = entry.messaging || entry.standby || [];
     for (const event of events) {
-      handleEvent(event).catch((e) => console.error("Hodisani qayta ishlashda xato:", e));
+      const senderId = event.sender && event.sender.id;
+      handleEvent(event).catch(async (e) => {
+        console.error("Hodisani qayta ishlashda xato:", e);
+        // Mijozga sukut emas, kechirim so'rovchi qisqa xabar yuboramiz - aks holda
+        // ichki xatolik bo'lganda mijoz hech qanday javob olmay qoladi.
+        if (senderId) {
+          try {
+            await sendMessage(senderId, {
+              text: "Kechirasiz, texnik nosozlik yuz berdi 🙏 Birozdan keyin qayta urinib ko'ring yoki \"operator\" deb yozing.",
+              quickReplies: [],
+            });
+          } catch (_) {
+            /* bu yerda ham xato chiqsa, qila oladigan ishimiz yo'q */
+          }
+        }
+      });
     }
   }
 });
 
 // Operatorga (do'kon egasiga) yangi buyurtma haqida qisqa xabar tayyorlaydi.
 function buildAdminNotice(senderId, order) {
-  let priceLine = "";
-  if (order.price) {
-    priceLine = `💰 Narxi: ${order.price.unitPrice.toLocaleString("en-US").replace(/,/g, " ")} so'm/dona x ${order.quantity} = ${order.price.total.toLocaleString("en-US").replace(/,/g, " ")} so'm\n`;
-  } else if (order.minQtyRequired) {
-    priceLine = `💰 Diqqat: mijoz so'ragan miqdor eng kam buyurtma chegarasidan (${order.minQtyRequired} dona) kam - narxni o'zingiz belgilang\n`;
-  }
+  const lines = (order.items || []).map((it, i) => {
+    let l = `${i + 1}. ${it.product} — ${it.quantity}`;
+    if (it.price) l += `, ${it.price.unitPrice.toLocaleString("en-US").replace(/,/g, " ")} so'm/dona = ${it.price.total.toLocaleString("en-US").replace(/,/g, " ")} so'm`;
+    else if (it.minQtyRequired) l += ` (min. ${it.minQtyRequired} dona, narxni o'zingiz belgilang)`;
+    return l;
+  });
+  const total = (order.items || []).reduce((s, it) => s + (it.price ? it.price.total : 0), 0);
+
   return {
     text:
-      `🆕 Yangi buyurtma!\n` +
-      `👤 Ism: ${order.name}\n` +
-      `🎁 Mahsulot: ${order.product}\n` +
-      `🔢 Soni: ${order.quantity}\n` +
-      priceLine +
-      `⏰ Muddat: ${order.deadline}\n` +
+      `🆕 Yangi buyurtma! (${order.orderId})\n` +
+      `👤 Ism: ${order.name}\n\n` +
+      lines.join("\n") +
+      (total ? `\n\n💰 Jami: ${total.toLocaleString("en-US").replace(/,/g, " ")} so'm` : "") +
+      `\n⏰ Muddat: ${order.deadline}\n` +
       `📱 Telefon: ${order.phone}\n` +
       `🆔 Instagram ID: ${senderId}`,
     quickReplies: [],
@@ -96,9 +112,22 @@ function buildAdminNotice(senderId, order) {
 // shunda "rahmat", "zor" kabi mavzusiz xabarlar behuda buyurtma jarayonini boshlamaydi.
 function looksLikeProductInquiry(text) {
   const t = (text || "").toLowerCase();
-  if (/\d/.test(t)) return true; // raqam bor - narx/son so'ralayotgan bo'lishi mumkin
+  if (/\d/.test(t)) return true;
   if (/nech|narx|qancha|qiymat|bormi|mavjud|сколько|сум|цена/.test(t)) return true;
   return config.catalog.some((p) => t.includes(p.name.toLowerCase()));
+}
+
+// Buyurtma jarayonidagi natijani mijozga (va kerak bo'lsa operatorga) yuborish - bir nechta
+// joyda (matn, tugma) takrorlanadigan kodni shu yerga jamladik.
+async function deliverOrderFlowResult(senderId, result) {
+  if (!result) return false;
+  if (result.image) await sendImage(senderId, result.image);
+  await sendMessage(senderId, result);
+  if (result.finished && result.order && config.adminRecipientId) {
+    await sendMessage(config.adminRecipientId, buildAdminNotice(senderId, result.order));
+  }
+  console.log(`→ Javob yuborildi (buyurtma): ${senderId}`);
+  return true;
 }
 
 async function handleEvent(event) {
@@ -123,15 +152,22 @@ async function handleEvent(event) {
 
   // 1) Quick reply tugma bosilgan
   if (payload) {
-    const [intentRaw, langRaw] = String(payload).split("|");
-    const intent = (intentRaw || "").toLowerCase();
-    const lang = langRaw === "ru" ? "ru" : "uz";
+    const parts = String(payload).split("|");
+    const intent = (parts[0] || "").toLowerCase();
+    const lang = parts[1] === "ru" ? "ru" : "uz";
 
     if (intent === "cancel") {
       orderFlow.cancel(senderId);
       await sendMessage(senderId, orderFlow.cancelText(lang));
       console.log(`→ Buyurtma bekor qilindi: ${senderId}`);
       return;
+    }
+
+    // Buyurtma jarayonidagi tugmalar (yana qo'shish / yo'q / boshqa variant / davom etish / tasdiqlash) -
+    // bular shunchaki tegishli matnni "yozilgandek" orderFlow ichiga yuboradi.
+    if (orderFlow.BUTTON_TEXT_MAP[intent] && orderFlow.isActive(senderId)) {
+      const result = await orderFlow.handleMessage(senderId, orderFlow.BUTTON_TEXT_MAP[intent], lang);
+      if (await deliverOrderFlowResult(senderId, result)) return;
     }
 
     // Boshqa har qanday tugma bosilishi = navigatsiya, faol buyurtma sessiyasi bekor qilinadi.
@@ -150,10 +186,19 @@ async function handleEvent(event) {
     return;
   }
 
-  // 2) Matn yo'q (stiker, rasm, "like" reaksiyasi va h.k.) - bunga javob bermaymiz,
-  // aks holda mijoz oxirgi xabarga reaksiya bossa ham bot qayta salomlashib qoladi.
   const text = msg.text;
+
+  // 2) Matn yo'q - stiker/rasm/reaksiya. Reaksiyalarga (haqiqiy matn yo'q, attachments ham yo'q)
+  // umuman javob bermaymiz. Lekin haqiqiy rasm/stiker yuborilgan bo'lsa, qisqa eslatma beramiz -
+  // shunda mijoz bot "o'lik" deb o'ylamaydi, lekin to'liq qayta salomlashish ham bo'lmaydi.
   if (!text) {
+    if (msg.attachments && msg.attachments.length) {
+      await sendMessage(senderId, {
+        text: "Buni ko'rdim 😊 Iltimos, savolingizni matn bilan yozib yuborsangiz, tezroq yordam beraman.",
+        quickReplies: [],
+      });
+      console.log(`→ Rasm/stikerga eslatma yuborildi: ${senderId}`);
+    }
     return;
   }
 
@@ -161,15 +206,7 @@ async function handleEvent(event) {
   if (orderFlow.isActive(senderId)) {
     const lang = detectLang(text);
     const result = await orderFlow.handleMessage(senderId, text, lang);
-    if (result) {
-      if (result.image) await sendImage(senderId, result.image);
-      await sendMessage(senderId, result);
-      if (result.finished && result.order && config.adminRecipientId) {
-        await sendMessage(config.adminRecipientId, buildAdminNotice(senderId, result.order));
-      }
-      console.log(`→ Javob yuborildi (buyurtma): ${senderId}`);
-      return;
-    }
+    if (await deliverOrderFlowResult(senderId, result)) return;
   }
 
   // 4) Oddiy matn - kalit so'z bo'yicha javob beramiz
@@ -187,9 +224,7 @@ async function handleEvent(event) {
   // to'g'ridan-to'g'ri buyurtma jarayonini boshlab ko'ramiz.
   if (intent === "fallback" && looksLikeProductInquiry(text)) {
     const r = await orderFlow.startWithText(senderId, lang, text);
-    if (r) {
-      if (r.image) await sendImage(senderId, r.image);
-      await sendMessage(senderId, r);
+    if (await deliverOrderFlowResult(senderId, r)) {
       console.log(`→ Buyurtma boshlandi (AI, kalit so'zsiz): ${senderId}`);
       return;
     }
