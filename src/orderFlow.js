@@ -1,5 +1,5 @@
 // Buyurtma jarayoni: AI yordamida bosqichma-bosqich ma'lumot yig'ish.
-// Tabiiy suhbat (Natural Conversation) qollab-quvvatlanadi.
+// XOTIRA (MEMORY) TIZIMI QO'SHILDI.
 
 const config = require("./config");
 const buildResponses = require("./responses");
@@ -23,7 +23,6 @@ setInterval(function () {
   }
 }, 5 * 60 * 1000);
 
-// DIQQAT: Sabr chegarasi 3 dan 10 ga oshirildi. Endi bot erkin gaplasha oladi.
 const MAX_CLARIFY_ATTEMPTS = 10; 
 
 const T = {
@@ -78,7 +77,6 @@ const T = {
     },
   },
   ru: {
-    // RU tarjimalari xuddi o'zidek qoldirildi...
     askNameProduct: "Напишите своё имя и какой товар вас интересует 😊",
     askProductOnly: function (name) { return "Снова рады видеть вас, " + name + "! 😊 Какой товар вас интересует?"; },
     askAnotherProduct: "Какой ещё товар нужен? 😊",
@@ -106,6 +104,19 @@ const T = {
     done: function (d) { return "Спасибо! Заказ принят ✅"; }
   },
 };
+
+// --- XOTIRANI SAQLOVCHI FUNKSIYA ---
+// Bot qanday javob bersa ham, shu funksiya orqali o'tadi va xotiraga "assistant" sifatida yoziladi.
+function botReply(session, text, quickReplies, opts = {}) {
+  if (session && text) {
+    session.history.push({ role: "assistant", content: text });
+    // Xotira to'lib ketib xato bermasligi uchun faqat oxirgi 20 ta xabarni saqlaymiz
+    if (session.history.length > 20) {
+      session.history = session.history.slice(-20);
+    }
+  }
+  return { text: text, quickReplies: quickReplies || [], ...opts };
+}
 
 function findVariants(name) {
   if (!name) return [];
@@ -225,10 +236,11 @@ function normalizePhone(text) {
   return "+998" + m[2];
 }
 
-function escalateToOperator(senderId, lang) {
+function escalateToOperator(senderId, lang, session) {
   sessions.delete(senderId);
   const r = responses.operator[lang] || responses.operator.uz;
-  return { text: T[lang].escalateNote + "\n\n" + r.text, quickReplies: r.quickReplies };
+  const note = T[lang].escalateNote + "\n\n" + r.text;
+  return botReply(session, note, r.quickReplies);
 }
 
 function start(senderId, lang) {
@@ -239,9 +251,12 @@ function start(senderId, lang) {
   const profile = customerProfiles.get(senderId);
   const data = { items: [] };
   if (profile && profile.name) data.name = profile.name;
-  sessions.set(senderId, { step: "name_product", lang: lang, data: data, history: [], variants: [], clarifyCount: 0, updatedAt: Date.now() });
+  
+  const session = { step: "name_product", lang: lang, data: data, history: [], variants: [], clarifyCount: 0, updatedAt: Date.now() };
+  sessions.set(senderId, session);
+  
   const text = data.name ? T[lang].askProductOnly(data.name) : T[lang].askNameProduct;
-  return { text: text, quickReplies: [cancelBtn(lang)] };
+  return botReply(session, text, [cancelBtn(lang)]);
 }
 
 async function startWithText(senderId, lang, text) {
@@ -266,36 +281,32 @@ async function processNameProduct(senderId, session, text, lang) {
     if (result.name) session.data.name = result.name;
     if (result.product) session.data.product = result.product;
     
-    // AI tabiiy suhbat uchun javob qaytarsa, uni ko'rsatamiz:
     if (result.needs_clarification && result.clarification_question) {
       session.clarifyCount += 1;
-      if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang);
-      session.history.push({ role: "assistant", content: result.clarification_question });
-      return { text: result.clarification_question, quickReplies: [cancelBtn(lang)] };
+      if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
+      return botReply(session, result.clarification_question, [cancelBtn(lang)]);
     }
   }
 
   if (!session.data.product) {
-    return { text: T[lang].needMoreNameProduct, quickReplies: [cancelBtn(lang)] };
+    return botReply(session, T[lang].needMoreNameProduct, [cancelBtn(lang)]);
   }
 
   if (session.data.name) customerProfiles.set(senderId, { name: session.data.name });
 
   const variants = findVariants(session.data.product);
-  session.clarifyCount = 0; // AI bilan suhbat muvaffaqiyatli yakunlansa, xatolar nolga tushadi
+  session.clarifyCount = 0; 
 
   if (variants.length > 1) {
     session.variants = variants;
     session.data.rejectedCodes = [];
     session.step = "quantity_budget";
-    session.history = [];
-    return { text: T[lang].askQuantityBudget(session.data.product), quickReplies: [cancelBtn(lang)] };
+    return botReply(session, T[lang].askQuantityBudget(session.data.product), [cancelBtn(lang)]);
   }
 
   session.variants = variants;
   session.step = "quantity_single";
-  session.history = [];
-  const resp = { text: T[lang].askQuantitySingle(session.data.product), quickReplies: [cancelBtn(lang)] };
+  const resp = botReply(session, T[lang].askQuantitySingle(session.data.product), [cancelBtn(lang)]);
   if (variants[0] && variants[0].image) resp.image = variants[0].image;
   return resp;
 }
@@ -337,10 +348,9 @@ async function handleMessage(senderId, text, lang) {
       quantity = text;
     } else if (result.needs_clarification) {
       session.clarifyCount += 1;
-      if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang);
+      if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
       const q = result.clarification_question || T[lang].needMoreQty;
-      session.history.push({ role: "assistant", content: q });
-      return { text: q, quickReplies: [cancelBtn(lang)] };
+      return botReply(session, q, [cancelBtn(lang)]);
     } else {
       quantity = result.quantity;
     }
@@ -356,8 +366,7 @@ async function handleMessage(senderId, text, lang) {
     }
     session.data.items.push(item);
     session.step = "add_more";
-    session.history = [];
-    return { text: T[lang].askAddMore, quickReplies: [addMoreBtn(lang), noMoreBtn(lang)] };
+    return botReply(session, T[lang].askAddMore, [addMoreBtn(lang), noMoreBtn(lang)]);
   }
 
   if (session.step === "quantity_budget") {
@@ -371,14 +380,13 @@ async function handleMessage(senderId, text, lang) {
       if (result.budget) session.data.budget = result.budget;
       if (result.needs_clarification && result.clarification_question) {
         session.clarifyCount += 1;
-        if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang);
-        session.history.push({ role: "assistant", content: result.clarification_question });
-        return { text: result.clarification_question, quickReplies: [cancelBtn(lang)] };
+        if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
+        return botReply(session, result.clarification_question, [cancelBtn(lang)]);
       }
     }
 
     if (!session.data.quantity) {
-      return { text: T[lang].needMoreQtyBudget, quickReplies: [cancelBtn(lang)] };
+      return botReply(session, T[lang].needMoreQtyBudget, [cancelBtn(lang)]);
     }
 
     session.clarifyCount = 0;
@@ -391,12 +399,14 @@ async function handleMessage(senderId, text, lang) {
     session.data.pendingRecommendation = rec;
     session.data.pendingQty = qtyNum;
     session.step = "confirm_variant";
-    const resp = { text: T[lang].recommend(rec.variant, rec.price, rec.overBudget), quickReplies: [altBtn(lang), continueBtn(lang)] };
+    
+    const resp = botReply(session, T[lang].recommend(rec.variant, rec.price, rec.overBudget), [altBtn(lang), continueBtn(lang)]);
     if (rec.variant.image) resp.image = rec.variant.image;
     return resp;
   }
 
   if (session.step === "confirm_variant") {
+    session.history.push({ role: "user", content: text });
     const wantsAlternative = /boshqa|другой/i.test(text || "");
 
     if (wantsAlternative) {
@@ -405,36 +415,34 @@ async function handleMessage(senderId, text, lang) {
       if (!rec) {
         pushCurrentItem(session);
         session.step = "add_more";
-        return { text: T[lang].noMoreAlternatives + "\n\n" + T[lang].askAddMore, quickReplies: [addMoreBtn(lang), noMoreBtn(lang)] };
+        return botReply(session, T[lang].noMoreAlternatives + "\n\n" + T[lang].askAddMore, [addMoreBtn(lang), noMoreBtn(lang)]);
       }
       session.data.pendingRecommendation = rec;
-      const resp = { text: T[lang].recommend(rec.variant, rec.price, rec.overBudget), quickReplies: [altBtn(lang), continueBtn(lang)] };
+      const resp = botReply(session, T[lang].recommend(rec.variant, rec.price, rec.overBudget), [altBtn(lang), continueBtn(lang)]);
       if (rec.variant.image) resp.image = rec.variant.image;
       return resp;
     }
 
     pushCurrentItem(session);
     session.step = "add_more";
-    session.history = [];
-    return { text: T[lang].askAddMore, quickReplies: [addMoreBtn(lang), noMoreBtn(lang)] };
+    return botReply(session, T[lang].askAddMore, [addMoreBtn(lang), noMoreBtn(lang)]);
   }
 
   if (session.step === "add_more") {
+    session.history.push({ role: "user", content: text });
     const trimmed = (text || "").trim();
     const wantsMore = /^(ha\b|xa\b|yana|qo'sh|qosh|да)/i.test(trimmed);
 
     if (wantsMore) {
       session.step = "name_product";
-      session.history = [];
       session.clarifyCount = 0;
       delete session.data.product;
-      return { text: T[lang].askAnotherProduct, quickReplies: [cancelBtn(lang)] };
+      return botReply(session, T[lang].askAnotherProduct, [cancelBtn(lang)]);
     }
 
     session.step = "deadline";
-    session.history = [];
     session.clarifyCount = 0;
-    return { text: T[lang].askDeadline, quickReplies: [cancelBtn(lang)] };
+    return botReply(session, T[lang].askDeadline, [cancelBtn(lang)]);
   }
 
   if (session.step === "deadline") {
@@ -445,10 +453,9 @@ async function handleMessage(senderId, text, lang) {
       session.data.deadline = (text || "").trim() || "aniqlanmagan";
     } else if (result.needs_clarification) {
       session.clarifyCount += 1;
-      if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang);
+      if (session.clarifyCount >= MAX_CLARIFY_ATTEMPTS) return escalateToOperator(senderId, lang, session);
       const q = result.clarification_question || T[lang].askDeadline;
-      session.history.push({ role: "assistant", content: q });
-      return { text: q, quickReplies: [cancelBtn(lang)] };
+      return botReply(session, q, [cancelBtn(lang)]);
     } else {
       session.data.deadline = result.deadline;
     }
@@ -457,29 +464,33 @@ async function handleMessage(senderId, text, lang) {
     session.step = "confirm_order";
     const summary = summarizeItems(session.data.items, lang);
     const total = calcGrandTotal(session.data.items);
-    return { text: T[lang].confirmOrder(summary, total), quickReplies: [confirmBtn(lang), cancelBtn(lang)] };
+    return botReply(session, T[lang].confirmOrder(summary, total), [confirmBtn(lang), cancelBtn(lang)]);
   }
 
   if (session.step === "confirm_order") {
+    session.history.push({ role: "user", content: text });
     const rejected = /^(yo'?q|нет)/i.test((text || "").trim());
     if (rejected) {
       sessions.delete(senderId);
       return { text: T[lang].confirmRejected, quickReplies: [] };
     }
     session.step = "phone";
-    return { text: T[lang].askPhone, quickReplies: [cancelBtn(lang)] };
+    return botReply(session, T[lang].askPhone, [cancelBtn(lang)]);
   }
 
   if (session.step === "phone") {
+    session.history.push({ role: "user", content: text });
     const phone = normalizePhone(text);
     if (!phone) {
-      return { text: T[lang].invalidPhone, quickReplies: [cancelBtn(lang)] };
+      return botReply(session, T[lang].invalidPhone, [cancelBtn(lang)]);
     }
     session.data.phone = phone;
     session.data.orderId = generateOrderId();
     const data = session.data;
-    sessions.delete(senderId);
-    return { text: T[lang].done(data), quickReplies: [], finished: true, order: data };
+    
+    const finalMsg = T[lang].done(data);
+    sessions.delete(senderId); // Xarid tugadi, sessiyani o'chiramiz
+    return { text: finalMsg, quickReplies: [], finished: true, order: data };
   }
 
   sessions.delete(senderId);
