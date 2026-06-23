@@ -1,53 +1,1625 @@
 [
-  { "code": "100-01", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 6000 }, { "minQty": 500, "price": 3500 }, { "minQty": 1000, "price": 2700 }
-  ] },
-  { "code": "100-04", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 6500 }, { "minQty": 500, "price": 4000 }, { "minQty": 1000, "price": 3500 }
-  ] },
-  { "code": "100-08", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 7000 }, { "minQty": 500, "price": 5000 }, { "minQty": 1000, "price": 4200 }
-  ] },
-  { "code": "100-10", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 10500 }, { "minQty": 500, "price": 8500 }, { "minQty": 1000, "price": 7500 }
-  ] },
-  { "code": "100-11", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 10000 }, { "minQty": 500, "price": 8500 }, { "minQty": 1000, "price": 7000 }
-  ] },
-  { "code": "100-16", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 50, "price": 24000 }, { "minQty": 100, "price": 24000 }, { "minQty": 500, "price": 22900 }, { "minQty": 1000, "price": 22800 }
-  ] },
-  { "code": "100-18", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 50, "price": 35000 }, { "minQty": 100, "price": 28000 }, { "minQty": 500, "price": 23000 }, { "minQty": 1000, "price": 23000 }
-  ] },
-  { "code": "100-19", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 50, "price": 45000 }, { "minQty": 100, "price": 38000 }, { "minQty": 500, "price": 33000 }, { "minQty": 1000, "price": 33000 }
-  ] },
-  { "code": "100-21", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 50, "price": 45000 }, { "minQty": 100, "price": 38000 }, { "minQty": 500, "price": 33000 }, { "minQty": 1000, "price": 33000 }
-  ] },
-  { "code": "100-25", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 12000 }, { "minQty": 500, "price": 10000 }, { "minQty": 1000, "price": 7500 }
-  ] },
-  { "code": "100-29", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 10, "price": 150000 }, { "minQty": 50, "price": 100000 }, { "minQty": 100, "price": 90000 }, { "minQty": 500, "price": 85000 }
-  ] },
-  { "code": "100-31", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 50, "price": 12000 }, { "minQty": 100, "price": 10000 }, { "minQty": 500, "price": 8000 }, { "minQty": 1000, "price": 7000 }
-  ] },
-  { "code": "100-34", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 10, "price": 50000 }, { "minQty": 50, "price": 40000 }, { "minQty": 100, "price": 35000 }
-  ] },
-  { "code": "100-35", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 10, "price": 50000 }, { "minQty": 50, "price": 40000 }, { "minQty": 100, "price": 35000 }
-  ] },
-  { "code": "100-37", "name": "Qalam", "image": null, "tiers": [
-    { "minQty": 50, "price": 5000 }, { "minQty": 100, "price": 3000 }, { "minQty": 500, "price": 2200 }
-  ] },
-  { "code": "100-38", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 15000 }, { "minQty": 500, "price": 12000 }, { "minQty": 1000, "price": 9500 }
-  ] },
-  { "code": "100-39", "name": "Ruchka", "image": null, "tiers": [
-    { "minQty": 100, "price": 18000 }, { "minQty": 500, "price": 17000 }, { "minQty": 1000, "price": 15000 }
-  ] }
+  {
+    "code": "100-01",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 6000
+      },
+      {
+        "minQty": 500,
+        "price": 3500
+      },
+      {
+        "minQty": 1000,
+        "price": 2700
+      }
+    ]
+  },
+  {
+    "code": "100-04",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 6500
+      },
+      {
+        "minQty": 500,
+        "price": 4000
+      },
+      {
+        "minQty": 1000,
+        "price": 3500
+      }
+    ]
+  },
+  {
+    "code": "100-08",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 7000
+      },
+      {
+        "minQty": 500,
+        "price": 5000
+      },
+      {
+        "minQty": 1000,
+        "price": 4200
+      }
+    ]
+  },
+  {
+    "code": "100-10",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 10500
+      },
+      {
+        "minQty": 500,
+        "price": 8500
+      },
+      {
+        "minQty": 1000,
+        "price": 7500
+      }
+    ]
+  },
+  {
+    "code": "100-11",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 10000
+      },
+      {
+        "minQty": 500,
+        "price": 8500
+      },
+      {
+        "minQty": 1000,
+        "price": 7000
+      }
+    ]
+  },
+  {
+    "code": "100-16",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 24000
+      },
+      {
+        "minQty": 100,
+        "price": 24000
+      },
+      {
+        "minQty": 500,
+        "price": 22900
+      },
+      {
+        "minQty": 1000,
+        "price": 22800
+      }
+    ]
+  },
+  {
+    "code": "100-18",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 35000
+      },
+      {
+        "minQty": 100,
+        "price": 28000
+      },
+      {
+        "minQty": 500,
+        "price": 23000
+      },
+      {
+        "minQty": 1000,
+        "price": 23000
+      }
+    ]
+  },
+  {
+    "code": "100-19",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 45000
+      },
+      {
+        "minQty": 100,
+        "price": 38000
+      },
+      {
+        "minQty": 500,
+        "price": 33000
+      },
+      {
+        "minQty": 1000,
+        "price": 33000
+      }
+    ]
+  },
+  {
+    "code": "100-21",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 45000
+      },
+      {
+        "minQty": 100,
+        "price": 38000
+      },
+      {
+        "minQty": 500,
+        "price": 33000
+      },
+      {
+        "minQty": 1000,
+        "price": 33000
+      }
+    ]
+  },
+  {
+    "code": "100-25",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 12000
+      },
+      {
+        "minQty": 500,
+        "price": 10000
+      },
+      {
+        "minQty": 1000,
+        "price": 7500
+      }
+    ]
+  },
+  {
+    "code": "100-29",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 10,
+        "price": 150000
+      },
+      {
+        "minQty": 50,
+        "price": 100000
+      },
+      {
+        "minQty": 100,
+        "price": 90000
+      },
+      {
+        "minQty": 500,
+        "price": 85000
+      }
+    ]
+  },
+  {
+    "code": "100-31",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 12000
+      },
+      {
+        "minQty": 100,
+        "price": 10000
+      },
+      {
+        "minQty": 500,
+        "price": 8000
+      },
+      {
+        "minQty": 1000,
+        "price": 7000
+      }
+    ]
+  },
+  {
+    "code": "100-34",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 10,
+        "price": 50000
+      },
+      {
+        "minQty": 50,
+        "price": 40000
+      },
+      {
+        "minQty": 100,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "100-35",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 10,
+        "price": 50000
+      },
+      {
+        "minQty": 50,
+        "price": 40000
+      },
+      {
+        "minQty": 100,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "100-37",
+    "name": "Qalam",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 5000
+      },
+      {
+        "minQty": 100,
+        "price": 3000
+      },
+      {
+        "minQty": 500,
+        "price": 2200
+      }
+    ]
+  },
+  {
+    "code": "100-38",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 15000
+      },
+      {
+        "minQty": 500,
+        "price": 12000
+      },
+      {
+        "minQty": 1000,
+        "price": 9500
+      }
+    ]
+  },
+  {
+    "code": "100-39",
+    "name": "Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 18000
+      },
+      {
+        "minQty": 500,
+        "price": 17000
+      },
+      {
+        "minQty": 1000,
+        "price": 15000
+      }
+    ]
+  },
+  {
+    "code": "107-11",
+    "name": "Biznes / Noutbuk uchun ryukzak",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 230000
+      },
+      {
+        "minQty": 50,
+        "price": 250000
+      },
+      {
+        "minQty": 10,
+        "price": 280000
+      }
+    ]
+  },
+  {
+    "code": "107-14",
+    "name": "Yon kamarlarli biznes ryukzak",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 320000
+      },
+      {
+        "minQty": 50,
+        "price": 350000
+      },
+      {
+        "minQty": 10,
+        "price": 390000
+      }
+    ]
+  },
+  {
+    "code": "107-17",
+    "name": "Qattiq old panelli minimalistik ryukzak",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 230000
+      },
+      {
+        "minQty": 50,
+        "price": 250000
+      },
+      {
+        "minQty": 10,
+        "price": 280000
+      }
+    ]
+  },
+  {
+    "code": "107-18",
+    "name": "Premium charm uslubidagi biznes ryukzak",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 320000
+      },
+      {
+        "minQty": 50,
+        "price": 350000
+      },
+      {
+        "minQty": 10,
+        "price": 390000
+      }
+    ]
+  },
+  {
+    "code": "107-01",
+    "name": "Mato xalta (Shopper)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1000,
+        "price": 23000
+      },
+      {
+        "minQty": 500,
+        "price": 27000
+      },
+      {
+        "minQty": 100,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "101-89",
+    "name": "To'plam: Bloknot, Ruchka, Fleshka, Powerbank, Termos",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 1200000
+      },
+      {
+        "minQty": 50,
+        "price": 1350000
+      },
+      {
+        "minQty": 10,
+        "price": 1600000
+      }
+    ]
+  },
+  {
+    "code": "101-90",
+    "name": "To'plam: Fleshka, Powerbank, Airpods, Namlagich",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 1050000
+      },
+      {
+        "minQty": 50,
+        "price": 1100000
+      },
+      {
+        "minQty": 10,
+        "price": 1250000
+      }
+    ]
+  },
+  {
+    "code": "101-91",
+    "name": "Antikvar sovg'abop quti (shokolad to'plami)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 1000000
+      },
+      {
+        "minQty": 50,
+        "price": 1150000
+      },
+      {
+        "minQty": 10,
+        "price": 1300000
+      }
+    ]
+  },
+  {
+    "code": "101-92",
+    "name": "Antikvar quti + 2 ta Krujka + Choy/Kofe",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 1100000
+      },
+      {
+        "minQty": 50,
+        "price": 1250000
+      },
+      {
+        "minQty": 10,
+        "price": 1500000
+      }
+    ]
+  },
+  {
+    "code": "101-93",
+    "name": "To'plam: Bloknot, Metall ruchka, Vizitnitsa, Brelok, Powerbank, Fleshka, Termos",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 930000
+      },
+      {
+        "minQty": 50,
+        "price": 1000000
+      },
+      {
+        "minQty": 10,
+        "price": 1200000
+      }
+    ]
+  },
+  {
+    "code": "101-75",
+    "name": "Eko nabor: Yog'ochli Bloknot, Ruchka, Termos",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 400000
+      },
+      {
+        "minQty": 50,
+        "price": 450000
+      },
+      {
+        "minQty": 10,
+        "price": 500000
+      }
+    ]
+  },
+  {
+    "code": "101-76",
+    "name": "Eko nabor full: Bloknot, Termos, PB, Ruchka, Vizitnitsa, Fleshka, Brelok",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 750000
+      },
+      {
+        "minQty": 50,
+        "price": 820000
+      },
+      {
+        "minQty": 10,
+        "price": 900000
+      }
+    ]
+  },
+  {
+    "code": "101-77",
+    "name": "Eko nabor mini: Yog'ochli Bloknot, Ruchka, Fleshka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 200000
+      },
+      {
+        "minQty": 50,
+        "price": 220000
+      },
+      {
+        "minQty": 10,
+        "price": 280000
+      }
+    ]
+  },
+  {
+    "code": "101-78",
+    "name": "Eko nabor micro: Yog'ochli Bloknot, Ruchka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 140000
+      },
+      {
+        "minQty": 50,
+        "price": 170000
+      },
+      {
+        "minQty": 10,
+        "price": 200000
+      }
+    ]
+  },
+  {
+    "code": "101-79",
+    "name": "Klassik qutida: Rangli Bloknot, Ruchka, Fleshka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 370000
+      },
+      {
+        "minQty": 50,
+        "price": 400000
+      },
+      {
+        "minQty": 10,
+        "price": 450000
+      }
+    ]
+  },
+  {
+    "code": "109-10",
+    "name": "Metall mexanizmli Kartxolder",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 30000
+      },
+      {
+        "minQty": 100,
+        "price": 35000
+      },
+      {
+        "minQty": 50,
+        "price": 40000
+      }
+    ]
+  },
+  {
+    "code": "109-11",
+    "name": "Charm MagSafe hamyon (Kartxolder)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 40000
+      },
+      {
+        "minQty": 100,
+        "price": 45000
+      },
+      {
+        "minQty": 50,
+        "price": 50000
+      }
+    ]
+  },
+  {
+    "code": "109-12",
+    "name": "Charm va metall uyg'unligidagi Vizitnitsa",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 20000
+      },
+      {
+        "minQty": 100,
+        "price": 25000
+      },
+      {
+        "minQty": 50,
+        "price": 30000
+      }
+    ]
+  },
+  {
+    "code": "109-13",
+    "name": "Qora matli klassik Vizitnitsa",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 20000
+      },
+      {
+        "minQty": 100,
+        "price": 25000
+      },
+      {
+        "minQty": 50,
+        "price": 30000
+      }
+    ]
+  },
+  {
+    "code": "109-15",
+    "name": "MagSafe funksiyali buklama Portmone",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 110000
+      },
+      {
+        "minQty": 100,
+        "price": 130000
+      },
+      {
+        "minQty": 50,
+        "price": 150000
+      }
+    ]
+  },
+  {
+    "code": "109-16",
+    "name": "Ko'p tarmoqli charm hujjatgich / hamyon",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 75000
+      },
+      {
+        "minQty": 100,
+        "price": 85000
+      },
+      {
+        "minQty": 50,
+        "price": 100000
+      }
+    ]
+  },
+  {
+    "code": "109-17",
+    "name": "Bambuk va metall korpusli Eko Vizitnitsa",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 23000
+      },
+      {
+        "minQty": 100,
+        "price": 27000
+      },
+      {
+        "minQty": 50,
+        "price": 30000
+      }
+    ]
+  },
+  {
+    "code": "110-28",
+    "name": "Qalqon shaklidagi metall Brelok",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 25000
+      },
+      {
+        "minQty": 100,
+        "price": 30000
+      },
+      {
+        "minQty": 50,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "110-29",
+    "name": "Uy shaklidagi metall Brelok",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 25000
+      },
+      {
+        "minQty": 100,
+        "price": 30000
+      },
+      {
+        "minQty": 50,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "110-32",
+    "name": "Aylana zanjirli klassik metall Brelok",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 25000
+      },
+      {
+        "minQty": 100,
+        "price": 30000
+      },
+      {
+        "minQty": 50,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "110-33",
+    "name": "Kvadrat Soft-Touch plastik Fleshka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 95000
+      },
+      {
+        "minQty": 50,
+        "price": 110000
+      },
+      {
+        "minQty": 10,
+        "price": 130000
+      }
+    ]
+  },
+  {
+    "code": "110-34",
+    "name": "Kalit shaklidagi yaltiroq metall Fleshka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 65000
+      },
+      {
+        "minQty": 100,
+        "price": 80000
+      },
+      {
+        "minQty": 50,
+        "price": 100000
+      }
+    ]
+  },
+  {
+    "code": "110-35",
+    "name": "Charm korpusli tugmali Fleshka-brelok",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 115000
+      },
+      {
+        "minQty": 50,
+        "price": 130000
+      },
+      {
+        "minQty": 10,
+        "price": 150000
+      }
+    ]
+  },
+  {
+    "code": "110-36",
+    "name": "Qopqoqli to'rtburchak metall Fleshka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 115000
+      },
+      {
+        "minQty": 50,
+        "price": 130000
+      },
+      {
+        "minQty": 10,
+        "price": 150000
+      }
+    ]
+  },
+  {
+    "code": "113-04",
+    "name": "Kapsulali ixcham soyabon (17 sm qutida)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 110000
+      },
+      {
+        "minQty": 50,
+        "price": 130000
+      },
+      {
+        "minQty": 10,
+        "price": 150000
+      }
+    ]
+  },
+  {
+    "code": "113-01",
+    "name": "Klassik uzun dastli soyabon (Trost)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 114000
+      },
+      {
+        "minQty": 50,
+        "price": 124000
+      },
+      {
+        "minQty": 10,
+        "price": 144000
+      }
+    ]
+  },
+  {
+    "code": "113-02",
+    "name": "Avtomat katlanadigan soyabon",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 120000
+      },
+      {
+        "minQty": 50,
+        "price": 135000
+      },
+      {
+        "minQty": 10,
+        "price": 150000
+      }
+    ]
+  },
+  {
+    "code": "113-03",
+    "name": "Katta o'lchamli mustahkam soyabon",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 130000
+      },
+      {
+        "minQty": 50,
+        "price": 145000
+      },
+      {
+        "minQty": 10,
+        "price": 160000
+      }
+    ]
+  },
+  {
+    "code": "108-08-S",
+    "name": "Parus ko'cha bayrog'i (Konstruksiya bilan) - S",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1,
+        "price": 630000
+      }
+    ]
+  },
+  {
+    "code": "108-08-M",
+    "name": "Parus ko'cha bayrog'i (Konstruksiya bilan) - M",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1,
+        "price": 750000
+      }
+    ]
+  },
+  {
+    "code": "108-08-L",
+    "name": "Parus ko'cha bayrog'i (Konstruksiya bilan) - L",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1,
+        "price": 850000
+      }
+    ]
+  },
+  {
+    "code": "108-01",
+    "name": "Stol usti bayrog'i (Plastik podstavka, 25x15)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 200,
+        "price": 25000
+      },
+      {
+        "minQty": 100,
+        "price": 30000
+      },
+      {
+        "minQty": 50,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "108-02",
+    "name": "Stol usti bayrog'i (Metall podstavka, 25x15)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 200,
+        "price": 75000
+      },
+      {
+        "minQty": 100,
+        "price": 80000
+      },
+      {
+        "minQty": 50,
+        "price": 85000
+      }
+    ]
+  },
+  {
+    "code": "108-03",
+    "name": "Stol usti qo'shaloq bayroq (V-simon metall)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 200,
+        "price": 125000
+      },
+      {
+        "minQty": 100,
+        "price": 130000
+      },
+      {
+        "minQty": 50,
+        "price": 135000
+      }
+    ]
+  },
+  {
+    "code": "108-04",
+    "name": "Stol usti T-simon vertikal bayroq",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 200,
+        "price": 125000
+      },
+      {
+        "minQty": 100,
+        "price": 130000
+      },
+      {
+        "minQty": 50,
+        "price": 135000
+      }
+    ]
+  },
+  {
+    "code": "108-06",
+    "name": "Katta bayroq (Konstruksiyasiz, 1.5 x 1m)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 230000
+      },
+      {
+        "minQty": 50,
+        "price": 260000
+      },
+      {
+        "minQty": 10,
+        "price": 290000
+      }
+    ]
+  },
+  {
+    "code": "108-07",
+    "name": "Kabinet uchun katta bayroq (Metall podst. 2.5m)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 2200000
+      },
+      {
+        "minQty": 50,
+        "price": 2300000
+      },
+      {
+        "minQty": 10,
+        "price": 2600000
+      }
+    ]
+  },
+  {
+    "code": "114-73",
+    "name": "Dumaloq shishali, tilla hoshiyali statuetka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 580000
+      },
+      {
+        "minQty": 10,
+        "price": 630000
+      },
+      {
+        "minQty": 5,
+        "price": 700000
+      }
+    ]
+  },
+  {
+    "code": "114-74",
+    "name": "Yashil tosh/marmar teksturali kvadrat statuetka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 680000
+      },
+      {
+        "minQty": 10,
+        "price": 730000
+      },
+      {
+        "minQty": 5,
+        "price": 800000
+      }
+    ]
+  },
+  {
+    "code": "114-75",
+    "name": "Romb shaklidagi simmetrik shisha/metall statuetka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 480000
+      },
+      {
+        "minQty": 10,
+        "price": 530000
+      },
+      {
+        "minQty": 5,
+        "price": 600000
+      }
+    ]
+  },
+  {
+    "code": "114-55",
+    "name": "Qora yog'och va dumaloq metall yuzali Plaketka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 680000
+      },
+      {
+        "minQty": 10,
+        "price": 720000
+      },
+      {
+        "minQty": 5,
+        "price": 800000
+      }
+    ]
+  },
+  {
+    "code": "114-56",
+    "name": "Kvadrat shaklidagi metall yuzali zamonaviy Plaketka",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 50,
+        "price": 400000
+      },
+      {
+        "minQty": 10,
+        "price": 450000
+      },
+      {
+        "minQty": 5,
+        "price": 500000
+      }
+    ]
+  },
+  {
+    "code": "114-76-18",
+    "name": "Millat Umidi naqshinkor tarelka (18 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 320000
+      },
+      {
+        "minQty": 10,
+        "price": 400000
+      }
+    ]
+  },
+  {
+    "code": "114-76-22",
+    "name": "Millat Umidi naqshinkor tarelka (22 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 360000
+      },
+      {
+        "minQty": 10,
+        "price": 470000
+      }
+    ]
+  },
+  {
+    "code": "114-76-25",
+    "name": "Millat Umidi naqshinkor tarelka (25 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 460000
+      },
+      {
+        "minQty": 10,
+        "price": 550000
+      }
+    ]
+  },
+  {
+    "code": "114-76-30",
+    "name": "Millat Umidi naqshinkor tarelka (30 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 600000
+      },
+      {
+        "minQty": 10,
+        "price": 670000
+      }
+    ]
+  },
+  {
+    "code": "114-76-40",
+    "name": "Millat Umidi naqshinkor tarelka (40 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 800000
+      },
+      {
+        "minQty": 10,
+        "price": 850000
+      }
+    ]
+  },
+  {
+    "code": "116-01",
+    "name": "Oddiy to'g'nog'ichli Znachok (44 mm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 8500
+      },
+      {
+        "minQty": 100,
+        "price": 9500
+      },
+      {
+        "minQty": 50,
+        "price": 10500
+      }
+    ]
+  },
+  {
+    "code": "116-02",
+    "name": "Plastik Beydjik (Lentasi bilan, 11x8 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 40000
+      },
+      {
+        "minQty": 50,
+        "price": 45000
+      },
+      {
+        "minQty": 20,
+        "price": 50000
+      }
+    ]
+  },
+  {
+    "code": "116-03",
+    "name": "Magnitli metall Beydjik (4x8 sm, Direktor)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 100,
+        "price": 25000
+      },
+      {
+        "minQty": 50,
+        "price": 30000
+      },
+      {
+        "minQty": 10,
+        "price": 35000
+      }
+    ]
+  },
+  {
+    "code": "116-04",
+    "name": "Metall quymali znachok (Kokarda/Booster)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 500,
+        "price": 17000
+      },
+      {
+        "minQty": 100,
+        "price": 21000
+      },
+      {
+        "minQty": 50,
+        "price": 25000
+      }
+    ]
+  },
+  {
+    "code": "112-15",
+    "name": "Stol usti kalendari (A5, Domik, 7 varoq)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1000,
+        "price": 29000
+      },
+      {
+        "minQty": 500,
+        "price": 31600
+      },
+      {
+        "minQty": 300,
+        "price": 44500
+      },
+      {
+        "minQty": 200,
+        "price": 46500
+      },
+      {
+        "minQty": 100,
+        "price": 52500
+      }
+    ]
+  },
+  {
+    "code": "112-02-W",
+    "name": "Kubarik 9x9sm 100l (Oq-qora)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1000,
+        "price": 6300
+      },
+      {
+        "minQty": 500,
+        "price": 6800
+      }
+    ]
+  },
+  {
+    "code": "112-02-C",
+    "name": "Kubarik 9x9sm 100l (Rangli)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1000,
+        "price": 7250
+      },
+      {
+        "minQty": 500,
+        "price": 7700
+      }
+    ]
+  },
+  {
+    "code": "112-04",
+    "name": "Evro Flaer (Melovka 130gr, 99x210 mm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 20000,
+        "price": 165
+      },
+      {
+        "minQty": 10000,
+        "price": 175
+      },
+      {
+        "minQty": 9000,
+        "price": 180
+      },
+      {
+        "minQty": 6000,
+        "price": 190
+      },
+      {
+        "minQty": 3000,
+        "price": 220
+      }
+    ]
+  },
+  {
+    "code": "112-05",
+    "name": "Buklet A4 / Brashura (Melovka 130gr)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 10000,
+        "price": 750
+      },
+      {
+        "minQty": 4000,
+        "price": 900
+      },
+      {
+        "minQty": 2000,
+        "price": 1000
+      },
+      {
+        "minQty": 1000,
+        "price": 1400
+      },
+      {
+        "minQty": 500,
+        "price": 2200
+      }
+    ]
+  },
+  {
+    "code": "112-06",
+    "name": "Avtomobillar uchun qog'oz Polik (50x35 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 10000,
+        "price": 1150
+      },
+      {
+        "minQty": 5000,
+        "price": 1250
+      },
+      {
+        "minQty": 2000,
+        "price": 1500
+      },
+      {
+        "minQty": 1000,
+        "price": 2000
+      }
+    ]
+  },
+  {
+    "code": "112-07",
+    "name": "Devor kalendari A2 (Melovka 150gr)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 1000,
+        "price": 6000
+      },
+      {
+        "minQty": 500,
+        "price": 8000
+      },
+      {
+        "minQty": 300,
+        "price": 10000
+      },
+      {
+        "minQty": 100,
+        "price": 16000
+      }
+    ]
+  },
+  {
+    "code": "112-08",
+    "name": "Hujjatlar uchun Papka (Karmashkali)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 2000,
+        "price": 6000
+      },
+      {
+        "minQty": 1000,
+        "price": 8000
+      },
+      {
+        "minQty": 500,
+        "price": 10000
+      },
+      {
+        "minQty": 100,
+        "price": 14000
+      }
+    ]
+  },
+  {
+    "code": "111-01-A",
+    "name": "Qog'oz Paket (Laminatsiya, 13x17x4 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 5000,
+        "price": 4200
+      },
+      {
+        "minQty": 500,
+        "price": 6160
+      },
+      {
+        "minQty": 100,
+        "price": 13300
+      }
+    ]
+  },
+  {
+    "code": "111-01-B",
+    "name": "Qog'oz Paket (Laminatsiya, 20x16x8 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 5000,
+        "price": 4900
+      },
+      {
+        "minQty": 500,
+        "price": 7800
+      },
+      {
+        "minQty": 100,
+        "price": 14500
+      }
+    ]
+  },
+  {
+    "code": "111-01-C",
+    "name": "Qog'oz Paket (Laminatsiya, 23x18x10 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 5000,
+        "price": 4900
+      },
+      {
+        "minQty": 500,
+        "price": 7000
+      },
+      {
+        "minQty": 100,
+        "price": 14000
+      }
+    ]
+  },
+  {
+    "code": "111-01-D",
+    "name": "Qog'oz Paket (Laminatsiya, 34x24x9 sm)",
+    "image": null,
+    "tiers": [
+      {
+        "minQty": 5000,
+        "price": 7700
+      },
+      {
+        "minQty": 500,
+        "price": 9800
+      },
+      {
+        "minQty": 100,
+        "price": 16800
+      }
+    ]
+  }
 ]
