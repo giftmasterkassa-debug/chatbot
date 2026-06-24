@@ -257,6 +257,28 @@ function buildSituation(ctx, lang) {
     return { situation: lines.join("\n"), factsBlock: null };
   }
 
+  if (e.objection_text) {
+    lines.push("Mijoz e'tiroz/shubha bildirdi: \"" + e.objection_text + "\".");
+    if (s.data.focusVariants && s.data.focusVariants.length) {
+      const cheapestQty = s.data.pendingQty || Math.max.apply(null, s.data.focusVariants.map(function (v) { return minQtyOfTiers(getTiers(v)); }));
+      const opts = priceOptionsForQuantity(s.data.focusVariants, cheapestQty).filter(function (o) { return o.price; });
+      if (opts.length) {
+        const cheapest = opts.reduce(function (a, b) { return a.price.unitPrice <= b.price.unitPrice ? a : b; });
+        lines.push(
+          "Mijozning e'tirozini tushunganingni bildir, keyin eng arzon mavjud variantni taklif qil: " +
+          cheapest.name + " (" + cheapest.code + ")" + (cheapest.optionLabel ? " - " + cheapest.optionLabel : "") +
+          " - " + formatMoney(cheapest.price.unitPrice) + " so'm/dona (" + cheapestQty + " dona uchun). " +
+          "Bosimsiz, tushunuvchan ohangda yoz - agar bu ham mos kelmasa, miqdorni oshirish narxni tushirishini eslatishing mumkin."
+        );
+      } else {
+        lines.push("Mahsulot sifati/qiymati haqida ishonchli, bosimsiz tarzda qisqa tushuntir, va kerak bo'lsa operator bilan gaplashish mumkinligini ayt.");
+      }
+    } else {
+      lines.push("Mahsulot haqida aniq gap bo'lmagani uchun, umumiy tarzda tushunuvchan javob ber va qaysi mahsulot/narx haqida ekanini so'ra.");
+    }
+    return { situation: lines.join("\n"), factsBlock: null };
+  }
+
   if (e.is_unclear && !e.off_topic_question) {
     lines.push("Mijoz xabari tushunarsiz edi. Muloyimlik bilan, nima kerak ekanini qayta so'ra.");
     return { situation: lines.join("\n"), factsBlock: null };
@@ -359,6 +381,7 @@ async function processMessage(senderId, text, lang) {
     const profile = customerProfiles.get(senderId);
     session = {
       lang: lang,
+      script: lang === "ru" ? "cyrillic" : "latin",
       history: [],
       data: {
         name: profile ? profile.name : null,
@@ -377,7 +400,8 @@ async function processMessage(senderId, text, lang) {
     };
     sessions.set(senderId, session);
   }
-  session.lang = lang;
+  // Boshlang'ich (taxminiy) til - extractTurn javobidan keyin ANIQ tilga yangilanadi.
+  lang = session.lang || lang;
   session.updatedAt = Date.now();
 
   // AI sozlanmagan bo'lsa - eski statik zaxira matni
@@ -403,6 +427,13 @@ async function processMessage(senderId, text, lang) {
     scheduleSave();
     return { text: lang === "ru" ? "Извините, технические трудности \ud83d\ude4f Попробуйте, пожалуйста, ещё раз." : "Kechirasiz, texnik nosozlik yuz berdi \ud83d\ude4f Iltimos, qayta urinib ko'ring." };
   }
+
+  // AI butun suhbat konteksti asosida tilni ANIQ belgilaydi - bir martalik regex'dan
+  // (faqat kirill bor-yoqligiga qaragan) ko'ra ishonchliroq, chunki o'zbek tilini ham
+  // kirill alifbosida yozish mumkin va bu holatni AI to'g'ri ajrata oladi.
+  if (extracted.language) session.lang = extracted.language;
+  if (extracted.script) session.data.script = extracted.script;
+  lang = session.lang;
 
   if (extracted.wants_cancel) {
     sessions.delete(senderId);
@@ -506,7 +537,7 @@ async function processMessage(senderId, text, lang) {
   );
 
   const addressName = session.data.name ? session.data.name + genderSuffix(session.data.gender, lang) : null;
-  let reply = await ai.composeReply(senderId, session.history, lang, situation.situation, addressName, situation.factsBlock);
+  let reply = await ai.composeReply(senderId, session.history, lang, situation.situation, addressName, situation.factsBlock, session.data.script);
 
   // ai.composeReply narx faktini (agar bo'lsa) o'zi to'g'ri joyga sendvich qilib qo'shadi -
   // AI narx yoziladigan joyga UMUMAN tegmaydi (alohida intro/closing maydonlari orqali).
