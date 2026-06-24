@@ -257,6 +257,15 @@ function buildSituation(ctx, lang) {
   const lines = [];
   let factsBlock = null;
 
+  // Katalog so'ralganda
+if (e.wants_catalog) {
+   const cats = getCategories();
+   const numbered = cats.map(function(c, i) { return (i + 1) + ". " + c; }).join("\n");
+   lines.push("Mijoz katalog so'radi. Quyidagi kategoriyalarni raqamli ro'yxat sifatida taqdim et:");
+   lines.push(numbered);
+   return { situation: lines.join("\n"), factsBlock: null };
+ }
+  
   if (e.off_topic_question) {
     lines.push("Mijoz mavzudan tashqari savol berdi: \"" + e.off_topic_question + "\". Quyidagi biznes faktlardan foydalanib qisqa javob ber, keyin muloyimlik bilan asosiy mavzuga qaytar (agar suhbat biror mahsulot/savatcha haqida bo'lsa, shuni eslatib o't):");
     lines.push(businessFactsText(lang));
