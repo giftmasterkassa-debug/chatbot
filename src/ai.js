@@ -1,130 +1,174 @@
-// AI (OpenAI API) integratsiyasi - "Gift Master" B2B Sotuv Mantiqiy Markazi
+// AI (OpenAI API) integratsiyasi - YANGI ARXITEKTURA.
+//
+// Eski tizimda har bir "qadam" (ism, soni, muddat...) uchun alohida tor AI so'rovi bo'lgan
+// va suhbat tarixi qadamlar orasida tozalanardi. Endi BUTUN suhbat tarixi saqlanadi va
+// har bir mijoz xabari uchun IKKI bosqichli AI chaqirig'i ishlatiladi:
+//
+//   1) extractTurn  - mijoz xabaridan FAKTLARNI ajratib oladi (ism, mahsulot/kategoriya,
+//                      soni, tanlangan narx, telefon, muddat, bekor/operator/tasdiqlash niyati,
+//                      mavzudan tashqari savol). Bu funksiya hech narsa "to'qib chiqarmaydi" -
+//                      faqat mijoz nima degani haqida struktura qaytaradi.
+//   2) composeReply - orderFlow.js JS orqali ANIQ hisoblagan faktlarni (narxlar, mahsulot
+//                      ro'yxati va h.k.) tabiiy, suhbatdosh tilda javobga aylantiradi. Bu
+//                      funksiya RAQAMLARNI O'ZI HISOBLAMAYDI - faqat berilgan faktlarni
+//                      chiroyli jumla qilib beradi (shu sabab narx xato bo'lib qolmaydi).
+//
+// OPENAI_API_KEY sozlanmagan bo'lsa, ikkisi ham null qaytaradi - orderFlow.js o'zining
+// oddiy (AI'siz) zaxira matnlariga o'tadi.
+
 const config = require("./config");
 
-const API_URL = "https://api.openai.com/v1/chat/completions";
+const API_URL = "https://api.openai.com/v1/responses";
 
-async function callTool(senderId, instructions, history, toolDefinition) {
+function langName(lang) {
+  return lang === "ru" ? "rus" : "o'zbek";
+}
+
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
+const RATE_LIMIT_MAX = 24;
+const rateMap = new Map();
+
+function isRateLimited(senderId) {
+  if (!senderId) return false;
+  const now = Date.now();
+  const entry = rateMap.get(senderId);
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateMap.set(senderId, { count: 1, windowStart: now });
+    return false;
+  }
+  entry.count += 1;
+  if (entry.count > RATE_LIMIT_MAX) {
+    console.warn("AI so'rov chegarasi (rate limit) oshib ketdi: " + senderId);
+    return true;
+  }
+  return false;
+}
+
+async function callTool(senderId, instructions, history, tool) {
   if (!config.ai.apiKey) return null;
-
-  const messages = [
-    { role: "system", content: instructions },
-    ...(Array.isArray(history) ? history : [{ role: "user", content: String(history) }])
-  ];
+  if (isRateLimited(senderId)) return null;
 
   try {
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + config.ai.apiKey,
-      },
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + config.ai.apiKey },
       body: JSON.stringify({
-        model: config.ai.model || "gpt-4o-mini",
-        messages: messages,
-        // OpenAI talab qiladigan to'g'ri tuzilma:
-        tools: [{ type: "function", function: toolDefinition }],
-        tool_choice: { type: "function", function: { name: toolDefinition.name } },
+        model: config.ai.model,
+        instructions: instructions,
+        input: history,
+        tools: [tool],
+        tool_choice: { type: "function", name: tool.name },
       }),
     });
 
     if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      console.error("AI API xatosi (400/500):", res.status, errText);
+      const errText = await res.text().catch(function () { return ""; });
+      console.error("AI API xatosi:", res.status, errText);
       return null;
     }
 
     const data = await res.json();
-    const message = data.choices[0].message;
+    const call = (data.output || []).find(function (o) { return o.type === "function_call" && o.name === tool.name; });
+    if (!call) return null;
 
-    if (message.tool_calls && message.tool_calls.length > 0) {
-      const call = message.tool_calls[0];
-      try {
-        return JSON.parse(call.function.arguments);
-      } catch (e) {
-        console.error("AI JSON javobini o'qishda xato:", e.message);
-        return null;
-      }
+    try {
+      return JSON.parse(call.arguments);
+    } catch (e) {
+      console.error("AI javobini o'qishda xato:", e.message);
+      return null;
     }
-    return null;
   } catch (e) {
     console.error("AI API ulanish xatosi:", e.message);
     return null;
   }
 }
 
-// ==========================================
-// FUNKSIYALAR TA'RIFI (Tools definitions)
-// ==========================================
+async function extractTurn(senderId, history, lang, state, categories) {
+  state = state || {};
+  const instructions = [
+    "Sen Instagram do'koni uchun mijozlar bilan suhbatlashadigan sotuv yordamchisisan.",
+    "Vazifang JAVOB YOZISH EMAS - faqat mijozning SO'NGGI xabaridan (oldingi suhbat kontekstini hisobga olib) quyidagi faktlarni ajratib olish:",
+    "- customer_name: agar mijoz ismini aytgan bo'lsa (oldin aytilmagan bo'lsa).",
+    "- likely_gender: agar ism aytilgan bo'lsa, shu ism odatda erkak ('male') yoki ayolga ('female') tegishli ekanini taxmin qil; aniq bo'lmasa null.",
+    "- category: agar mijoz quyidagi kategoriyalardan biriga ishora qilsa (to'g'ridan-to'g'ri yoki tabiiy so'z bilan) - ANIQ shu ro'yxatdagi nomni yoz: " + categories.join(", ") + ". Mos kelmasa null.",
+    "- product_text: agar mijoz aniq mahsulot nomini aytsa (masalan 'ruchka', 'futbolka') - shu matnni yoz (xato/qisqa yozilgan bo'lsa ham, tushunarli holatda). Aks holda null.",
+    "- quantity: agar mijoz miqdor aytsa (masalan '10 ta', '50 dona') - shu sondagi BUTUN SON (integer). Aks holda null.",
+    "- selected_price: agar mijoz avval taklif qilingan narx variantlaridan birini tanlasa (masalan '30 minglik bo'lsin', 'ikkinchisi') - shu narxni SON sifatida yoz (masalan 30000). Aniq bo'lmasa null.",
+    "- phone: agar mijoz telefon raqam yozsa - shuni yoz. Aks holda null.",
+    "- deadline: agar mijoz mahsulot qachongacha kerakligini aytsa (masalan 'ertaga', '3 kun ichida') - shuni yoz. Aks holda null.",
+    "- wants_cancel: mijoz suhbatni/buyurtmani bekor qilishni, to'xtatishni xohlasa true.",
+    "- wants_operator: mijoz jonli odam/operator bilan gaplashishni xohlasa, yoki buyurtmasini hozir RASMIYLASHTIRISHGA (yakuniy tasdiqlashga) tayyor bo'lsa true.",
+    "- off_topic_question: agar mijoz sotuvga aloqasi yo'q narsa so'rasa - shu savolni qisqacha yoz. Aks holda null.",
+    "- is_unclear: mijoz xabari sizga umuman tushunarsiz/aloqasiz bo'lsa true.",
+    "Hozircha ma'lum holat: ism=" + (state.name || "noma'lum") + ", joriy kategoriya=" + (state.category || "yo'q") + ", joriy mahsulot=" + (state.focusProduct || "yo'q") + ", savatda mahsulot bor=" + (state.hasItems ? "ha" : "yo'q") + ", telefon bor=" + (state.hasPhone ? "ha" : "yo'q") + ".",
+    "Bir xabarda bir nechta fakt birga kelishi mumkin - hammasini ajratib ol.",
+    "Faqat extract_turn tool orqali javob ber, undan tashqari hech qanday matn yozma.",
+  ].join(" ");
 
-async function extractNameAndProduct(senderId, history, lang, current) {
-  const toolDef = {
-    name: "extract_order_info",
-    description: "Mijozning ismi va qiziqqan mahsulotini aniqlaydi.",
+  const tool = {
+    type: "function",
+    name: "extract_turn",
+    description: "Mijoz xabaridan suhbat uchun kerakli faktlarni ajratib oladi.",
+    strict: true,
     parameters: {
       type: "object",
       properties: {
-        name: { type: ["string", "null"] },
-        product: { type: ["string", "null"] },
-        needs_clarification: { type: "boolean" },
-        clarification_question: { type: "string" },
-        image_keyword: { type: ["string", "null"] }
+        customer_name: { type: ["string", "null"] },
+        likely_gender: { type: ["string", "null"], enum: ["male", "female", null] },
+        category: { type: ["string", "null"] },
+        product_text: { type: ["string", "null"] },
+        quantity: { type: ["integer", "null"] },
+        selected_price: { type: ["integer", "null"] },
+        phone: { type: ["string", "null"] },
+        deadline: { type: ["string", "null"] },
+        wants_cancel: { type: "boolean" },
+        wants_operator: { type: "boolean" },
+        off_topic_question: { type: ["string", "null"] },
+        is_unclear: { type: "boolean" },
       },
-      required: ["name", "product", "needs_clarification", "clarification_question"]
-    }
+      required: [
+        "customer_name", "likely_gender", "category", "product_text", "quantity",
+        "selected_price", "phone", "deadline", "wants_cancel", "wants_operator",
+        "off_topic_question", "is_unclear",
+      ],
+      additionalProperties: false,
+    },
   };
-  return callTool(senderId, "Siz 'Gift Master' menejerisiz. Mijoz ismini va mahsulotini aniqlang.", history, toolDef);
+
+  return callTool(senderId, instructions, history, tool);
 }
 
-async function extractQuantityOnly(senderId, history, lang, current) {
-  const toolDef = {
-    name: "extract_quantity",
-    description: "Mijozdan mahsulot sonini aniqlaydi.",
+async function composeReply(senderId, history, lang, situation, addressName) {
+  const instructions = [
+    "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
+    "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - bu yerdagi RAQAM va FAKTLARNI o'zgartirma, to'qima, faqat tabiiy jumla bilan birlashtirib mijozga yetkazib ber:",
+    "--- HOLAT ---",
+    situation,
+    "--- HOLAT TUGADI ---",
+    addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, lekin tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
+    "Javobni " + langName(lang) + " tilida, qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
+    "Agar holatda \"mavzudan tashqari savolga javob\" bo'lsa - avval shu savolga qisqa javob ber, so'ng muloyimlik bilan asosiy mavzuga qaytar.",
+    "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma - faqat berilgan holatdagi faktlardan foydalan.",
+    "Faqat compose_reply tool orqali javob ber, undan tashqari hech qanday matn yozma.",
+  ].join("\n");
+
+  const tool = {
+    type: "function",
+    name: "compose_reply",
+    description: "Berilgan holat tasvirini tabiiy, suhbatdosh javobga aylantiradi.",
+    strict: true,
     parameters: {
       type: "object",
       properties: {
-        quantity: { type: ["string", "null"] },
-        needs_clarification: { type: "boolean" },
-        clarification_question: { type: "string" }
+        reply: { type: "string", description: "Mijozga yuboriladigan yakuniy javob matni" },
       },
-      required: ["quantity", "needs_clarification", "clarification_question"]
-    }
+      required: ["reply"],
+      additionalProperties: false,
+    },
   };
-  return callTool(senderId, "Mijozdan kerakli miqdorni so'rang.", history, toolDef);
+
+  const result = await callTool(senderId, instructions, history, tool);
+  return result ? result.reply : null;
 }
 
-async function extractQuantityAndBudget(senderId, history, lang, current) {
-  const toolDef = {
-    name: "extract_order_budget",
-    description: "Mijozdan soni va byudjetini aniqlaydi.",
-    parameters: {
-      type: "object",
-      properties: {
-        quantity: { type: ["string", "null"] },
-        budget: { type: ["string", "null"] },
-        needs_clarification: { type: "boolean" },
-        clarification_question: { type: "string" }
-      },
-      required: ["quantity", "budget", "needs_clarification", "clarification_question"]
-    }
-  };
-  return callTool(senderId, "Mijozdan soni va byudjetni aniqlang.", history, toolDef);
-}
-
-async function extractDeadline(senderId, history, lang) {
-  const toolDef = {
-    name: "extract_deadline",
-    description: "Buyurtma muddatini aniqlaydi.",
-    parameters: {
-      type: "object",
-      properties: {
-        deadline: { type: "string" },
-        needs_clarification: { type: "boolean" },
-        clarification_question: { type: "string" }
-      },
-      required: ["deadline", "needs_clarification", "clarification_question"]
-    }
-  };
-  return callTool(senderId, "Buyurtma qachongacha tayyor bo'lishi kerakligini so'rang.", history, toolDef);
-}
-
-module.exports = { extractNameAndProduct, extractQuantityOnly, extractQuantityAndBudget, extractDeadline };
+module.exports = { extractTurn: extractTurn, composeReply: composeReply };
