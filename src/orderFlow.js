@@ -202,17 +202,6 @@ function variantsListText(variants) {
     .join("; ");
 }
 
-function priceOptionsText(options, qty) {
-  return options
-    .map(function (o) {
-      const label = o.name + " (" + o.code + ")" + (o.optionLabel ? " - " + o.optionLabel : "");
-      if (o.price) {
-        return label + ": " + formatMoney(o.price.unitPrice) + " so'm/dona, jami " + qty + " dona uchun " + formatMoney(o.price.total) + " so'm";
-      }
-      return label + ": " + qty + " dona uchun narx yo'q (eng kam buyurtam - " + o.minQtyAll + " dona)";
-    })
-    .join(" | ");
-}
 
 function orderSummaryText(order) {
   const lines = ["Buyurtma raqami: " + order.id];
@@ -229,20 +218,34 @@ function orderSummaryText(order) {
   return lines.join("\n");
 }
 
+function priceOptionsBlock(options, qty) {
+  return options
+    .map(function (o) {
+      const label = o.name + " (" + o.code + ")" + (o.optionLabel ? " - " + o.optionLabel : "");
+      if (o.price) {
+        return "\u2022 " + label + ": " + formatMoney(o.price.unitPrice) + " so'm/dona \u2014 " + qty + " dona uchun jami " + formatMoney(o.price.total) + " so'm";
+      }
+      return "\u2022 " + label + ": eng kam buyurtma - " + o.minQtyAll + " dona (siz so'ragan " + qty + " dona uchun narx yo'q)";
+    })
+    .join("\n");
+}
+
 function buildSituation(ctx, lang) {
   const e = ctx.extracted;
   const s = ctx.session;
   const lines = [];
+  let factsBlock = null;
 
   if (e.off_topic_question) {
     lines.push("Mijoz mavzudan tashqari savol berdi: \"" + e.off_topic_question + "\". Quyidagi biznes faktlardan foydalanib qisqa javob ber, keyin muloyimlik bilan asosiy mavzuga qaytar (agar suhbat biror mahsulot/savatcha haqida bo'lsa, shuni eslatib o't):");
     lines.push(businessFactsText(lang));
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   if (ctx.orderFinalized) {
-    lines.push("BUYURTMA HOZIRGINA YAKUNLANDI. Quyidagi tafsilotlarni mijozga ayt, rahmat bildir, operator tez orada bog'lanishini ayt:");
-    lines.push(orderSummaryText(ctx.orderFinalized));
-    return lines.join("\n");
+    factsBlock = orderSummaryText(ctx.orderFinalized);
+    lines.push("BUYURTMA HOZIRGINA YAKUNLANDI. Mijozga rahmat ayt, buyurtma tafsilotlari [[FAKTLAR]] joyiga avtomat qo'shiladi (sen bu raqamlarni o'zing yozma), so'ng operator tez orada bog'lanishini ayt.");
+    return { situation: lines.join("\n"), factsBlock: factsBlock };
   }
 
   if (e.wants_operator && !ctx.orderFinalized) {
@@ -251,70 +254,70 @@ function buildSituation(ctx, lang) {
     } else if (!s.data.phone) {
       lines.push("Mijoz buyurtmani yakunlamoqchi/operator bilan gaplashmoqchi, lekin telefon raqami hali yo'q. Aloqa uchun telefon raqamini so'ra.");
     }
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   if (e.is_unclear && !e.off_topic_question) {
     lines.push("Mijoz xabari tushunarsiz edi. Muloyimlik bilan, nima kerak ekanini qayta so'ra.");
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   if (ctx.selectedItem && ctx.selectedItem.price) {
     const it = ctx.selectedItem;
-    lines.push(
-      "Mijoz tanladi: " + it.name + " (" + it.code + ")" + (it.optionLabel ? " - " + it.optionLabel : "") +
-      ", " + ctx.qtyUsed + " dona, narxi " + formatMoney(it.price.unitPrice) + " so'm/dona, jami " + formatMoney(it.price.total) + " so'm. " +
-      "Bu savatga qo'shildi - shuni tasdiqla."
-    );
+    factsBlock = "\u2022 " + it.name + " (" + it.code + ")" + (it.optionLabel ? " - " + it.optionLabel : "") +
+      " \u2014 " + ctx.qtyUsed + " dona, " + formatMoney(it.price.unitPrice) + " so'm/dona, jami " + formatMoney(it.price.total) + " so'm";
+    lines.push("Mijoz narx variantini tanladi - bu savatga qo'shildi. Tafsilotlar [[FAKTLAR]] joyiga avtomat qo'shiladi (raqamlarni o'zing yozma, faqat \"savatga qo'shildi\" kabi tasdiq ber).");
     if (!s.data.phone) {
-      lines.push("Endi aloqa uchun telefon raqamini so'ra (yoki agar mijoz yana mahsulot qo'shmoqchi bo'lsa, shunga ham javob ber).");
+      lines.push("So'ngra aloqa uchun telefon raqamini so'ra.");
     } else {
       lines.push("Telefon raqami allaqachon bor (" + s.data.phone + "). Yana mahsulot kerak bo'lsa aytishini, aks holda buyurtmani tasdiqlashini so'ra.");
     }
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: factsBlock };
   }
 
   if (ctx.computedOptions && ctx.computedOptions.length) {
-    lines.push(ctx.qtyUsed + " dona uchun narx variantlari (BU RAQAMLARNI ANIQ ISHLAT, hech narsani o'zgartirma):");
-    lines.push(priceOptionsText(ctx.computedOptions, ctx.qtyUsed));
+    factsBlock = priceOptionsBlock(ctx.computedOptions, ctx.qtyUsed);
+    lines.push(
+      "Mijoz " + ctx.qtyUsed + " dona uchun narxlarni bilishni so'radi. Narx ro'yxati [[FAKTLAR]] joyiga AVTOMAT qo'shiladi - " +
+      "SEN HECH QANDAY RAQAM YOZMA, faqat shu joygacha qisqa kirish jumlasi yoz (masalan \"Albatta, mana narxlarimiz:\"), " +
+      "[[FAKTLAR]] dan keyin esa mijozdan qaysi variant mos kelishini so'rovchi qisqa savol yoz."
+    );
     if (ctx.computedOptions.every(function (o) { return !o.price; })) {
-      lines.push("Mijoz so'ragan miqdor hech biriga mos kelmadi (juda kam). Eng kam buyurtam talabini muloyimlik bilan ayt.");
-    } else {
-      lines.push("Mijozdan qaysi variant mos kelishini so'ra.");
+      lines.push("Diqqat: hech biri mos kelmadi (juda kam miqdor so'ralgan) - shuni nazokat bilan tushuntir, [[FAKTLAR]] o'zida buni ko'rsatadi.");
     }
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: factsBlock };
   }
 
   if (ctx.newFocus && !s.data.pendingQty) {
     lines.push("Mijoz \"" + s.data.focusName + "\" haqida so'radi. Bizda shu nomda quyidagi(lar) bor: " + variantsListText(s.data.focusVariants) + ".");
     lines.push("Narxni aniq aytish uchun, mijozdan ODOB BILAN nechta dona kerakligini so'ra (narx miqdorga qarab farqlanadi, shuni tushuntir). Byudjet haqida SO'RAMA.");
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   if (ctx.categoryChanged && !ctx.newFocus) {
     lines.push("Mijoz \"" + s.data.category + "\" kategoriyasini tanladi. Shu kategoriyada quyidagi mahsulotlar bor: " + categoryProductsText(s.data.category) + ".");
     lines.push("Shularni qisqacha sanab o't, qaysi biriga aniq qiziqayotganini so'ra.");
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   if (!s.data.category && !s.data.focusVariants) {
     lines.push("Mijoz nima borligini bilmoqchi yoki hali aniq mahsulot aytmagan. Quyidagi kategoriyalarni tabiiy tilda sanab o't, qaysi biriga qiziqayotganini so'ra:");
     lines.push(categoryListText());
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   if (e.phone && !normalizePhone(e.phone)) {
     lines.push("Mijoz telefon raqam yozdi, lekin format noto'g'ri ko'rinadi (9 xonali O'zbekiston raqami kerak). Qaytadan to'g'ri formatda so'ra, masalan +998901234567.");
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   if (e.phone && normalizePhone(e.phone) && s.data.items.length) {
     lines.push("Mijoz telefon raqamini berdi: " + s.data.phone + ". Buni qabul qilganingni ayt, va agar buyurtmani tasdiqlashga tayyor bo'lsa \"tasdiqlayman\" deyishini so'ra.");
-    return lines.join("\n");
+    return { situation: lines.join("\n"), factsBlock: null };
   }
 
   lines.push("Mijozga oddiy, do'stona javob ber, suhbatni tabiiy davom ettir.");
-  return lines.join("\n");
+  return { situation: lines.join("\n"), factsBlock: null };
 }
 
 // ============================================================================
@@ -504,8 +507,19 @@ async function processMessage(senderId, text, lang) {
   );
 
   const addressName = session.data.name ? session.data.name + genderSuffix(session.data.gender, lang) : null;
-  let reply = await ai.composeReply(senderId, session.history, lang, situation, addressName);
-  if (!reply) reply = situation;
+  let reply = await ai.composeReply(senderId, session.history, lang, situation.situation, addressName, situation.factsBlock);
+  if (!reply) reply = situation.situation;
+
+  // composeReply [[FAKTLAR]] o'rnini to'g'ri almashtirgan bo'lishi kerak - lekin ishonchlilik
+  // uchun JS o'zi ham tekshiradi: agar AI placeholder'ni unutib qoldirsa yoki butunlay
+  // o'chirib yuborsa, raqamlarni baribir oxiriga MAJBURIY qo'shamiz (narx hech qachon yo'qolmasin).
+  if (situation.factsBlock) {
+    if (reply.includes("[[FAKTLAR]]")) {
+      reply = reply.replace("[[FAKTLAR]]", situation.factsBlock);
+    } else if (!reply.includes(situation.factsBlock)) {
+      reply = reply + "\n\n" + situation.factsBlock;
+    }
+  }
 
   session.history.push({ role: "assistant", content: reply });
   if (session.history.length > 24) session.history = session.history.slice(-24);
