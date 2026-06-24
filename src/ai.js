@@ -95,12 +95,12 @@ async function extractTurn(senderId, history, lang, state, categories) {
     "- category: agar mijoz quyidagi kategoriyalardan biriga ishora qilsa (to'g'ridan-to'g'ri yoki tabiiy so'z bilan) - ANIQ shu ro'yxatdagi nomni yoz: " + categories.join(", ") + ". Mos kelmasa null.",
     "- product_text: agar mijoz aniq mahsulot nomini aytsa (masalan 'ruchka', 'futbolka') - shu matnni yoz (xato/qisqa yozilgan bo'lsa ham, tushunarli holatda). Aks holda null.",
     "- quantity: agar mijoz miqdor aytsa (masalan '10 ta', '50 dona') - shu sondagi BUTUN SON (integer). Aks holda null.",
-    "- selected_price: agar mijoz avval taklif qilingan narx variantlaridan birini tanlasa (masalan '30 minglik bo'lsin', 'ikkinchisi') - shu narxni SON sifatida yoz (masalan 30000). Aniq bo'lmasa null.",
+    "- selected_price: agar mijoz avval taklif qilingan narx variantlaridan birini ANIQ XARID QILISH NIYATIDA TANLASA (masalan '30 minglik bo'lsin', 'ikkinchisi', 'shu 55 mingligidan olaman') - shu narxni SON sifatida yoz (masalan 30000). QAT'IY QOIDA: Agar mijoz narxni savol ko'rinishida ishlatsa yoki arzonrog'ini so'rasa (masalan '55 mingdan arzoni bormi?', 'buning 30 mingligi qanaqa bo'ladi?') - BU TANLASH EMAS! Bunday holatda qat'iyan null qaytar.",
     "- phone: agar mijoz telefon raqam yozsa - shuni yoz. Aks holda null.",
     "- deadline: agar mijoz mahsulot qachongacha kerakligini aytsa (masalan 'ertaga', '3 kun ichida') - shuni yoz. Aks holda null.",
     "- wants_cancel: mijoz suhbatni/buyurtmani bekor qilishni, to'xtatishni xohlasa true.",
     "- wants_operator: mijoz jonli odam/operator bilan gaplashishni xohlasa, yoki buyurtmasini hozir RASMIYLASHTIRISHGA (yakuniy tasdiqlashga) tayyor bo'lsa true.",
-    "- objection_text: agar mijoz e'tiroz/shubha bildirsa - narx qimmat deb o'ylasa, boshqa joyda arzonroq borligini aytsa, ishonchsizlik bildirsa, ikkilansa - shu e'tirozni qisqacha yoz (masalan 'narx qimmat'). Aks holda null.",
+    "- objection_text: agar mijoz e'tiroz/shubha bildirsa, narx qimmat deb o'ylasa, YOXUD arzonroq variant qidirsa (masalan 'bundan arzoni yo'qmi?', 'qimmat ekan') - shu e'tirozni qisqacha yoz (masalan 'arzonroq variant qidiryapti'). Aks holda null.",
     "- off_topic_question: FAQAT agar mijoz ANIQ, TUSHUNARLI va sotuvga aloqasi yo'q haqiqiy savol bersa (masalan 'ish vaqtingiz qachongacha', 'qayerda joylashgansiz') - shu savolni qisqacha yoz. MUHIM: agar xabar tushunarsiz/ma'nosiz bo'lsa, buni off_topic_question deb belgilama (hatto unda tanish so'z - masalan 'kiber', 'internet' kabi - uchragan taqdirda ham) - bunday holda buni is_unclear=true qilib belgilash kerak, off_topic_question esa null qoladi.",
     "- is_unclear: mijoz xabari tushunarsiz, ma'nosiz so'zlar to'plami, yoki aniq mantiqsiz bo'lsa true. Bunday holda boshqa hech qaysi maydonni (off_topic_question ham) to'ldirma - faqat is_unclear=true qil.",
     "Hozircha ma'lum holat: ism=" + (state.name || "noma'lum") + ", joriy kategoriya=" + (state.category || "yo'q") + ", joriy mahsulot=" + (state.focusProduct || "yo'q") + ", savatda mahsulot bor=" + (state.hasItems ? "ha" : "yo'q") + ", telefon bor=" + (state.hasPhone ? "ha" : "yo'q") + ".",
@@ -153,46 +153,41 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
       : "Javobni rus tilida yoz.";
 
   const guardrail =
-    "QATTIQ QOIDA: Sen FAQAT \"" + (config.business.shopName || "Gift Master") + "\" do'koni va uning mahsulotlari haqida gaplashasan. " +
-    "Agar mijoz butunlay aloqasiz, tushunarsiz yoki boshqa sohaga oid (texnik, ilmiy, umumiy bilim va h.k.) narsa so'rasa - " +
-    "O'ZINGNING UMUMIY BILIMINGDAN FOYDALANIB JAVOB BERMA. Faqat: mavzuga aloqasi yo'qligini muloyimlik bilan ayt va sotuvga qaytar. " +
-    "Sen hech qachon do'kon mavzusidan tashqari (masalan texnologiya, sog'liq, umumiy maslahat) ekspert sifatida javob bermaysan.";
+    "QATTIQ QOIDA: Sen FAQAT \"" + (config.business.shopName || "Gift Master") + "\" do'koni va uning mahsulotlari haqida gaplashasan. O'zingdan narx yoki xususiyat to'qib chiqarma.";
 
   const behaviorRules = 
-    "SOTUV PSIXOLOGIYASI VA E'TIROZLAR: Agar mijoz e'tiroz bildirsa (masalan 'qimmat', 'boshqa joyda arzon'), darhol himoyalanma yoki uzr so'rama. Mahsulot/xizmat sifatiga, korporativ yondashuvga urg'u berib, professional qisqa argument keltir.\n" +
-    "TAQIQLANGAN SO'ZLAR: Suhbat yakuniy bosqichga yetmagunicha (mijoz aniq xaridni rad etmagunicha yoki to'liq tugatmagunicha) HECH QACHON 'Yana qanday yordam bera olaman?', 'Boshqa savollaringiz bormi?' kabi standart shablonlarni ishlatma. Faqat ayni paytdagi mavzu bo'yicha keyingi mantiqiy qadamga yetakla.";
+    "SOTUV PSIXOLOGIYASI VA STIL: Sen B2B sohasida ishlovchi tajribali va professional ekspert-sotuvchisan. Mijoz bilan muloqoting muloyim, hurmat bilan, lekin 'suvsiz' (ortiqcha so'zlarsiz, qisqa, londa va aniq) bo'lishi shart. Uzun salomlashishlar, keraksiz tasdiqlar (masalan, 'Albatta, tushunaman') va hissiyotli filler so'zlardan umuman foydalanma.\n" +
+    "E'TIROZLAR (masalan, 'qimmat'): Mijozning fikrini hurmat qilgan holda, muloyim lekin aniq argument keltir. Sifat, kafolat yoki korporativ qiymatni 1-2 ta londa jumla bilan tushuntir. Oqlanma va xaridorga bosim o'tkazma.\n" +
+    "TAQIQLANGAN SO'ZLAR: 'Yana qanday yordam bera olaman?', 'Boshqa savollaringiz bormi?' kabi mijozni charchatuvchi umumiy shablonlarni qat'iyan ISHLATMA. Javobni aniq fakt bilan tugat yoki faqat bitta mantiqiy keyingi qadamni so'ra.";
 
   const instructions = factsBlock
     ? [
-        "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
+        "Sen mijozlarga muloyim, lekin ortiqcha 'suv'siz javob beradigan professional sotuv ekspertisan.",
         guardrail,
         behaviorRules,
-        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan:",
+        "Quyida JS tizimi tomonidan tayyorlangan holat tasviri:",
         "--- HOLAT ---",
         situation,
         "--- HOLAT TUGADI ---",
-        "MUHIM QOIDA: Mijozga ANIQ NARX/RAQAMLAR ko'rsatiladigan alohida blok BOR - bu blokni SEN YOZMAYSAN, tizim avtomat qo'yadi. Sening vazifang FAQAT ikkita qisqa matn yozish:",
-        "  1) intro - shu narx blokidan OLDIN aytiladigan 1 jumlali kirish (masalan \"Albatta, mana narxlarimiz:\"). Bu yerda HECH QANDAY RAQAM/NARX YOZMA - chunki ular sendan KEYIN avtomat qo'shiladi, sen ularni hali bilmaysan deb hisobla.",
-        "  2) closing - narx blokidan KEYIN aytiladigan qisqa savol/yopilish jumlasi (masalan \"Qaysi biri sizga mos keladi?\"). Bu yerda ham raqam yozma va UMUMIY yordam taklif qiluvchi so'zlarni ishlatma.",
-        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum.",
+        "MUHIM: Mijozga narx/raqamlar ko'rsatiladigan blok BOR. Sen FAQAT quyidagi ikkita qisqa matnni yozasan:",
+        "  1) intro - narx blokidan oldin keluvchi 1-2 so'zli professional kirish (masalan, 'Marhamat, narxlar:'). Raqam yozma.",
+        "  2) closing - narx blokidan keyin keluvchi xushmuomala, lekin aniq qisqa savol (masalan, 'Qaysi o'lchamni rasmiylashtiramiz?'). Agar vaziyat savol talab qilmasa, bo'sh qoldir.",
+        addressName ? ("Mijoz murojaati: \"" + addressName + "\"") : "",
         scriptNote,
-        "Qisqa va samimiy ohangda yoz.",
-        "Faqat compose_reply_with_facts tool orqali javob ber.",
-      ].join("\n")
+        "Faqat compose_reply_with_facts orqali javob ber."
+      ].filter(Boolean).join("\n")
     : [
-        "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
+        "Sen mijozlarga muloyim, lekin ortiqcha 'suv'siz javob beradigan professional sotuv ekspertisan.",
         guardrail,
         behaviorRules,
-        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - shu asosida tabiiy javob yoz (faktlarni o'zgartirma, to'qima):",
+        "Quyida JS tizimi tomonidan tayyorlangan holat tasviri - shu asosida muloyim, ammo LAKONIK (qisqa, londa) javob yoz:",
         "--- HOLAT ---",
         situation,
         "--- HOLAT TUGADI ---",
-        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
+        addressName ? ("Mijoz murojaati: \"" + addressName + "\"") : "",
         scriptNote,
-        "Qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
-        "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma.",
-        "Faqat compose_reply tool orqali javob ber.",
-      ].join("\n");
+        "Faqat compose_reply orqali javob ber."
+      ].filter(Boolean).join("\n");
 
   const tool = factsBlock
     ? {
