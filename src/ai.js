@@ -88,6 +88,8 @@ async function extractTurn(senderId, history, lang, state, categories) {
   const instructions = [
     "Sen Instagram do'koni uchun mijozlar bilan suhbatlashadigan sotuv yordamchisisan.",
     "Vazifang JAVOB YOZISH EMAS - faqat mijozning SO'NGGI xabaridan (oldingi suhbat kontekstini hisobga olib) quyidagi faktlarni ajratib olish:",
+    "- language: mijoz qaysi tilda yozayotgani - 'uz' (o'zbek, lotin yoki kirill) yoki 'ru' (rus). Butun suhbat kontekstidan kelib chiq, faqat oxirgi xabardan emas - agar mijoz avval \"o'zbekcha gaplasha olasizmi\" kabi aniq aytgan bo'lsa, shuni hisobga ol va keyingi xabarlarda ham 'uz' deb belgilashda davom et.",
+    "- script: agar til 'uz' bo'lsa - mijoz lotin ('latin') yoki kirill ('cyrillic') alifbosida yozayapti. Til 'ru' bo'lsa - har doim 'cyrillic'.",
     "- customer_name: agar mijoz ismini aytgan bo'lsa (oldin aytilmagan bo'lsa).",
     "- likely_gender: agar ism aytilgan bo'lsa, shu ism odatda erkak ('male') yoki ayolga ('female') tegishli ekanini taxmin qil; aniq bo'lmasa null.",
     "- category: agar mijoz quyidagi kategoriyalardan biriga ishora qilsa (to'g'ridan-to'g'ri yoki tabiiy so'z bilan) - ANIQ shu ro'yxatdagi nomni yoz: " + categories.join(", ") + ". Mos kelmasa null.",
@@ -98,8 +100,9 @@ async function extractTurn(senderId, history, lang, state, categories) {
     "- deadline: agar mijoz mahsulot qachongacha kerakligini aytsa (masalan 'ertaga', '3 kun ichida') - shuni yoz. Aks holda null.",
     "- wants_cancel: mijoz suhbatni/buyurtmani bekor qilishni, to'xtatishni xohlasa true.",
     "- wants_operator: mijoz jonli odam/operator bilan gaplashishni xohlasa, yoki buyurtmasini hozir RASMIYLASHTIRISHGA (yakuniy tasdiqlashga) tayyor bo'lsa true.",
-    "- off_topic_question: agar mijoz sotuvga aloqasi yo'q narsa so'rasa - shu savolni qisqacha yoz. Aks holda null.",
-    "- is_unclear: mijoz xabari sizga umuman tushunarsiz/aloqasiz bo'lsa true.",
+    "- objection_text: agar mijoz e'tiroz/shubha bildirsa - narx qimmat deb o'ylasa, boshqa joyda arzonroq borligini aytsa, ishonchsizlik bildirsa, ikkilansa - shu e'tirozni qisqacha yoz (masalan 'narx qimmat'). Aks holda null.",
+    "- off_topic_question: FAQAT agar mijoz ANIQ, TUSHUNARLI va sotuvga aloqasi yo'q haqiqiy savol bersa (masalan 'ish vaqtingiz qachongacha', 'qayerda joylashgansiz') - shu savolni qisqacha yoz. MUHIM: agar xabar tushunarsiz/ma'nosiz bo'lsa, buni off_topic_question deb belgilama (hatto unda tanish so'z - masalan 'kiber', 'internet' kabi - uchragan taqdirda ham) - bunday holda buni is_unclear=true qilib belgilash kerak, off_topic_question esa null qoladi.",
+    "- is_unclear: mijoz xabari tushunarsiz, ma'nosiz so'zlar to'plami, yoki aniq mantiqsiz bo'lsa true. Bunday holda boshqa hech qaysi maydonni (off_topic_question ham) to'ldirma - faqat is_unclear=true qil.",
     "Hozircha ma'lum holat: ism=" + (state.name || "noma'lum") + ", joriy kategoriya=" + (state.category || "yo'q") + ", joriy mahsulot=" + (state.focusProduct || "yo'q") + ", savatda mahsulot bor=" + (state.hasItems ? "ha" : "yo'q") + ", telefon bor=" + (state.hasPhone ? "ha" : "yo'q") + ".",
     "Bir xabarda bir nechta fakt birga kelishi mumkin - hammasini ajratib ol.",
     "Faqat extract_turn tool orqali javob ber, undan tashqari hech qanday matn yozma.",
@@ -113,6 +116,8 @@ async function extractTurn(senderId, history, lang, state, categories) {
     parameters: {
       type: "object",
       properties: {
+        language: { type: "string", enum: ["uz", "ru"] },
+        script: { type: "string", enum: ["latin", "cyrillic"] },
         customer_name: { type: ["string", "null"] },
         likely_gender: { type: ["string", "null"], enum: ["male", "female", null] },
         category: { type: ["string", "null"] },
@@ -123,12 +128,13 @@ async function extractTurn(senderId, history, lang, state, categories) {
         deadline: { type: ["string", "null"] },
         wants_cancel: { type: "boolean" },
         wants_operator: { type: "boolean" },
+        objection_text: { type: ["string", "null"] },
         off_topic_question: { type: ["string", "null"] },
         is_unclear: { type: "boolean" },
       },
       required: [
-        "customer_name", "likely_gender", "category", "product_text", "quantity",
-        "selected_price", "phone", "deadline", "wants_cancel", "wants_operator",
+        "language", "script", "customer_name", "likely_gender", "category", "product_text", "quantity",
+        "selected_price", "phone", "deadline", "wants_cancel", "wants_operator", "objection_text",
         "off_topic_question", "is_unclear",
       ],
       additionalProperties: false,
@@ -138,10 +144,24 @@ async function extractTurn(senderId, history, lang, state, categories) {
   return callTool(senderId, instructions, history, tool);
 }
 
-async function composeReply(senderId, history, lang, situation, addressName, factsBlock) {
+async function composeReply(senderId, history, lang, situation, addressName, factsBlock, script) {
+  const scriptNote =
+    lang === "uz"
+      ? script === "cyrillic"
+        ? "Mijoz o'zbek tilida KIRILL alifbosida yozayapti - sen ham albatta KIRILL alifbosida yoz (lotin emas)."
+        : "Mijoz o'zbek tilida LOTIN alifbosida yozayapti - sen ham lotin alifbosida yoz."
+      : "Javobni rus tilida yoz.";
+
+  const guardrail =
+    "QATTIQ QOIDA: Sen FAQAT \"" + (config.business.shopName || "Gift Master") + "\" do'koni va uning mahsulotlari haqida gaplashasan. " +
+    "Agar mijoz butunlay aloqasiz, tushunarsiz yoki boshqa sohaga oid (texnik, ilmiy, umumiy bilim va h.k.) narsa so'rasa - " +
+    "O'ZINGNING UMUMIY BILIMINGDAN FOYDALANIB JAVOB BERMA. Faqat: mavzuga aloqasi yo'qligini muloyimlik bilan ayt va sotuvga qaytar. " +
+    "Sen hech qachon do'kon mavzusidan tashqari (masalan texnologiya, sog'liq, umumiy maslahat) ekspert sifatida javob bermaysan.";
+
   const instructions = factsBlock
     ? [
         "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
+        guardrail,
         "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan:",
         "--- HOLAT ---",
         situation,
@@ -150,17 +170,20 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
         "  1) intro - shu narx blokidan OLDIN aytiladigan 1 jumlali kirish (masalan \"Albatta, mana narxlarimiz:\"). Bu yerda HECH QANDAY RAQAM/NARX YOZMA - chunki ular sendan KEYIN avtomat qo'shiladi, sen ularni hali bilmaysan deb hisobla.",
         "  2) closing - narx blokidan KEYIN aytiladigan qisqa savol/yopilish jumlasi (masalan \"Qaysi biri sizga mos keladi?\"). Bu yerda ham raqam yozma.",
         addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum.",
-        "Javobni " + langName(lang) + " tilida, qisqa va samimiy ohangda yoz.",
+        scriptNote,
+        "Qisqa va samimiy ohangda yoz.",
         "Faqat compose_reply_with_facts tool orqali javob ber.",
       ].join("\n")
     : [
         "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
+        guardrail,
         "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - shu asosida tabiiy javob yoz (faktlarni o'zgartirma, to'qima):",
         "--- HOLAT ---",
         situation,
         "--- HOLAT TUGADI ---",
         addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
-        "Javobni " + langName(lang) + " tilida, qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
+        scriptNote,
+        "Qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
         "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma.",
         "Faqat compose_reply tool orqali javob ber.",
       ].join("\n");
