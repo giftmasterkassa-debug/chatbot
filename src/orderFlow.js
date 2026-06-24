@@ -1,97 +1,536 @@
+// Buyurtma/suhbat jarayoni - YANGI ARXITEKTURA (tugmasiz, to'liq kontekstli suhbat).
+//
+// Eski qattiq "qadam" (step) mashinasi olib tashlandi. Endi har bir mijoz xabari uchun:
+//   1) Butun suhbat tarixi saqlanadi (qadamlar orasida tozalanmaydi).
+//   2) ai.extractTurn() - mijoz xabaridan FAKTLARNI ajratib oladi (ism, mahsulot/kategoriya,
+//      soni, tanlangan narx, telefon, muddat, bekor/operator niyati, mavzudan tashqari savol).
+//   3) Shu JS fayl FAKTLARGA asoslanib HOLATNI yangilaydi va narxni ANIQ hisoblaydi
+//      (AI hech qachon narxni o'zi "hisoblamaydi" - shu bilan xato narx aytib qo'yish oldini olamiz).
+//   4) ai.composeReply() - JS tayyorlagan faktlarni tabiiy, suhbatdosh javobga aylantiradi.
+//
+// Tugmalar UMUMAN ishlatilmaydi - hammasi erkin matn orqali.
+
 const config = require("./config");
-const aiModule = require("./ai");
-const { extractNameAndProduct, extractQuantityOnly, extractQuantityAndBudget, extractDeadline } = aiModule;
+const buildResponses = require("./responses");
+const fs = require("fs");
+const path = require("path");
+const ai = require("./ai");
 
-const sessions = new Map();
+const responses = buildResponses(config.business);
+const sessions = new Map(); // senderId -> { lang, data, history, updatedAt }
+const customerProfiles = new Map(); // senderId -> { name, gender }
 
-const SESSION_TTL_MS = 30 * 60 * 1000;
-setInterval(() => {
-  const now = Date.now();
-  for (const [id, s] of sessions) {
-    if (now - s.updatedAt > SESSION_TTL_MS) sessions.delete(id);
+// --- Holatni faylga saqlash/tiklash (oddiy qayta ishga tushishlarda foydali) ---
+const STORE_DIR = path.join(__dirname, ".data");
+const STORE_PATH = path.join(STORE_DIR, "orderflow-state.json");
+
+function loadState() {
+  try {
+    if (fs.existsSync(STORE_PATH)) {
+      const raw = JSON.parse(fs.readFileSync(STORE_PATH, "utf8"));
+      for (const [id, s] of raw.sessions || []) sessions.set(id, s);
+      for (const [id, p] of raw.profiles || []) customerProfiles.set(id, p);
+      if (sessions.size || customerProfiles.size) {
+        console.log("\u21ba Saqlangan holat tiklandi: " + sessions.size + " faol sessiya, " + customerProfiles.size + " mijoz profili.");
+      }
+    }
+  } catch (e) {
+    console.error("\u26a0\ufe0f  Saqlangan holatni o'qishda xato:", e.message);
   }
-}, 5 * 60 * 1000);
-
-function botReply(session, text, imageUrl = null) {
-  if (session && text) {
-    session.history.push({ role: "assistant", content: text });
-    if (session.history.length > 20) session.history = session.history.slice(-20);
-  }
-  return { text: text, image: imageUrl };
 }
 
-function findImageByKeyword(keyword) {
-  if (!keyword) return null;
-  const norm = keyword.toLowerCase().trim();
-  const found = config.catalog.find(p => p.name.toLowerCase().includes(norm));
-  return found ? found.image : null;
+let saveTimer = null;
+function scheduleSave() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(function () {
+    saveTimer = null;
+    try {
+      if (!fs.existsSync(STORE_DIR)) fs.mkdirSync(STORE_DIR, { recursive: true });
+      const data = { sessions: Array.from(sessions.entries()), profiles: Array.from(customerProfiles.entries()) };
+      fs.writeFileSync(STORE_PATH, JSON.stringify(data));
+    } catch (e) {
+      console.error("\u26a0\ufe0f  Holatni saqlashda xato:", e.message);
+    }
+  }, 500);
 }
 
-function calculateRecommendation(productKeyword, qtyStr, budgetStr) {
-  const norm = (productKeyword || "").toLowerCase().trim();
-  const qty = parseInt((qtyStr || "").replace(/\D/g, "")) || 0;
-  const product = config.catalog.find(p => p.name.toLowerCase().includes(norm));
-  if (!product) return null;
+loadState();
 
-  let availableTiers = product.tiers || (product.options && product.options[0].tiers) || [];
-  let bestTier = availableTiers.reduce((prev, curr) => (qty >= curr.minQty ? curr : prev), availableTiers[0]);
+// ============================================================================
+// Katalog yordamchi funksiyalari
+// ============================================================================
 
-  return {
-    name: product.name,
-    unitPrice: bestTier ? bestTier.price : "Narx operator tomonidan belgilanadi",
-    minQty: bestTier ? bestTier.minQty : 1,
-    image: product.image
+function getCategories() {
+  const set = new Set(config.catalog.map(function (p) { return p.category || "Boshqa"; }));
+  return Array.from(set).sort();
+}
+
+function categoryProducts(category) {
+  return config.catalog.filter(function (p) { return p.category === category; });
+}
+
+function findProductVariants(text) {
+  if (!text) return [];
+  const norm = text.toLowerCase().trim();
+  let list = config.catalog.filter(function (p) { return p.name.toLowerCase().trim() === norm; });
+  if (!list.length) {
+    list = config.catalog.filter(function (p) {
+      const pn = p.name.toLowerCase().trim();
+      return pn.includes(norm) || norm.includes(pn);
+    });
+  }
+  return list;
+}
+
+function getTiers(product, optionLabel) {
+  if (product.tiers) return product.tiers;
+  if (product.options && product.options.length) {
+    if (optionLabel) {
+      const norm = optionLabel.toLowerCase().trim();
+      const opt = product.options.find(function (o) {
+        const on = o.label.toLowerCase();
+        return on === norm || on.includes(norm) || norm.includes(on);
+      });
+      if (opt) return opt.tiers;
+    }
+    return product.options.reduce(function (a, b) {
+      const aMin = Math.min.apply(null, a.tiers.map(function (t) { return t.price; }));
+      const bMin = Math.min.apply(null, b.tiers.map(function (t) { return t.price; }));
+      return aMin <= bMin ? a : b;
+    }).tiers;
+  }
+  return null;
+}
+
+function minQtyOfTiers(tiers) {
+  if (!tiers || !tiers.length) return 0;
+  return Math.min.apply(null, tiers.map(function (t) { return t.minQty; }));
+}
+
+function calcPrice(product, qty, optionLabel) {
+  const tiers = product && getTiers(product, optionLabel);
+  if (!tiers || !tiers.length || !qty) return null;
+  const sorted = tiers.slice().sort(function (a, b) { return a.minQty - b.minQty; });
+  let chosen = null;
+  for (const t of sorted) {
+    if (qty >= t.minQty) chosen = t;
+  }
+  if (!chosen) return null;
+  return { unitPrice: chosen.price, total: chosen.price * qty, minQty: chosen.minQty };
+}
+
+// Berilgan variantlar (bir xil nomdagi bir yoki bir nechta kod) uchun, har bir kod+tanlov
+// kombinatsiyasi bo'yicha narx variantlarini hisoblaydi.
+function priceOptionsForQuantity(variants, qty) {
+  const out = [];
+  for (const v of variants) {
+    if (v.options && v.options.length > 1) {
+      for (const opt of v.options) {
+        out.push({
+          code: v.code, name: v.name, optionLabel: opt.label, image: v.image,
+          price: calcPrice(v, qty, opt.label), minQtyAll: minQtyOfTiers(opt.tiers),
+        });
+      }
+    } else {
+      out.push({
+        code: v.code, name: v.name, optionLabel: null, image: v.image,
+        price: calcPrice(v, qty), minQtyAll: minQtyOfTiers(getTiers(v)),
+      });
+    }
+  }
+  return out;
+}
+
+function formatMoney(n) {
+  return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function normalizePhone(text) {
+  const digits = (text || "").replace(/[^\d]/g, "");
+  const m = digits.match(/^(998)?(\d{9})$/);
+  if (!m) return null;
+  return "+998" + m[2];
+}
+
+function genderSuffix(gender, lang) {
+  if (lang !== "uz") return "";
+  if (gender === "male") return " aka";
+  if (gender === "female") return " opa";
+  return "";
+}
+
+let orderCounter = 0;
+function generateOrderId() {
+  orderCounter += 1;
+  return "GM-" + Date.now().toString(36).toUpperCase().slice(-5) + orderCounter;
+}
+
+// ============================================================================
+// "Holat tasviri" matnini qurish - composeReply shu asosida tabiiy javob yozadi
+// ============================================================================
+
+function businessFactsText(lang) {
+  const b = config.business;
+  return [
+    "Ish vaqti: " + b.workHours,
+    "Yetkazib berish: " + b.deliveryTashkent + "; " + b.deliveryRegion + "; " + b.selfPickup,
+    "To'lov usullari: " + b.paymentMethods,
+    "Telefon: " + b.phone,
+    "Manzil: " + b.address,
+  ].join("; ");
+}
+
+function categoryListText() {
+  return getCategories().join(", ");
+}
+
+function categoryProductsText(category) {
+  const items = categoryProducts(category);
+  const names = Array.from(new Set(items.map(function (p) { return p.name; })));
+  return names.join(", ");
+}
+
+function variantsListText(variants) {
+  if (variants.length === 1 && !(variants[0].options && variants[0].options.length > 1)) {
+    return variants[0].name + " (kod " + variants[0].code + ")";
+  }
+  return variants
+    .map(function (v) {
+      const opts = v.options && v.options.length > 1 ? " [" + v.options.map(function (o) { return o.label; }).join(" / ") + "]" : "";
+      return v.name + " (kod " + v.code + ")" + opts;
+    })
+    .join("; ");
+}
+
+function priceOptionsText(options, qty) {
+  return options
+    .map(function (o) {
+      const label = o.name + " (" + o.code + ")" + (o.optionLabel ? " - " + o.optionLabel : "");
+      if (o.price) {
+        return label + ": " + formatMoney(o.price.unitPrice) + " so'm/dona, jami " + qty + " dona uchun " + formatMoney(o.price.total) + " so'm";
+      }
+      return label + ": " + qty + " dona uchun narx yo'q (eng kam buyurtam - " + o.minQtyAll + " dona)";
+    })
+    .join(" | ");
+}
+
+function orderSummaryText(order) {
+  const lines = ["Buyurtma raqami: " + order.id];
+  for (const it of order.items) {
+    if (it.price) {
+      lines.push(it.product + " - " + it.quantity + " - " + formatMoney(it.price.unitPrice) + " so'm/dona, jami " + formatMoney(it.price.total) + " so'm");
+    } else {
+      lines.push(it.product + " - " + it.quantity + " - narx operator tomonidan aniqlashtiriladi");
+    }
+  }
+  lines.push("Jami summa: " + formatMoney(order.total) + " so'm");
+  lines.push("Telefon: " + order.phone);
+  lines.push("Muddat: " + (order.deadline || "kelishiladi"));
+  return lines.join("\n");
+}
+
+function buildSituation(ctx, lang) {
+  const e = ctx.extracted;
+  const s = ctx.session;
+  const lines = [];
+
+  if (e.off_topic_question) {
+    lines.push("Mijoz mavzudan tashqari savol berdi: \"" + e.off_topic_question + "\". Quyidagi biznes faktlardan foydalanib qisqa javob ber, keyin muloyimlik bilan asosiy mavzuga qaytar (agar suhbat biror mahsulot/savatcha haqida bo'lsa, shuni eslatib o't):");
+    lines.push(businessFactsText(lang));
+  }
+
+  if (ctx.orderFinalized) {
+    lines.push("BUYURTMA HOZIRGINA YAKUNLANDI. Quyidagi tafsilotlarni mijozga ayt, rahmat bildir, operator tez orada bog'lanishini ayt:");
+    lines.push(orderSummaryText(ctx.orderFinalized));
+    return lines.join("\n");
+  }
+
+  if (e.wants_operator && !ctx.orderFinalized) {
+    if (!s.data.items.length) {
+      lines.push("Mijoz operator/jonli odam bilan gaplashishni so'rayapti. Operatorga ulanayotganingni, tez orada bog'lanishini ayt.");
+    } else if (!s.data.phone) {
+      lines.push("Mijoz buyurtmani yakunlamoqchi/operator bilan gaplashmoqchi, lekin telefon raqami hali yo'q. Aloqa uchun telefon raqamini so'ra.");
+    }
+    return lines.join("\n");
+  }
+
+  if (e.is_unclear && !e.off_topic_question) {
+    lines.push("Mijoz xabari tushunarsiz edi. Muloyimlik bilan, nima kerak ekanini qayta so'ra.");
+    return lines.join("\n");
+  }
+
+  if (ctx.selectedItem && ctx.selectedItem.price) {
+    const it = ctx.selectedItem;
+    lines.push(
+      "Mijoz tanladi: " + it.name + " (" + it.code + ")" + (it.optionLabel ? " - " + it.optionLabel : "") +
+      ", " + ctx.qtyUsed + " dona, narxi " + formatMoney(it.price.unitPrice) + " so'm/dona, jami " + formatMoney(it.price.total) + " so'm. " +
+      "Bu savatga qo'shildi - shuni tasdiqla."
+    );
+    if (!s.data.phone) {
+      lines.push("Endi aloqa uchun telefon raqamini so'ra (yoki agar mijoz yana mahsulot qo'shmoqchi bo'lsa, shunga ham javob ber).");
+    } else {
+      lines.push("Telefon raqami allaqachon bor (" + s.data.phone + "). Yana mahsulot kerak bo'lsa aytishini, aks holda buyurtmani tasdiqlashini so'ra.");
+    }
+    return lines.join("\n");
+  }
+
+  if (ctx.computedOptions && ctx.computedOptions.length) {
+    lines.push(ctx.qtyUsed + " dona uchun narx variantlari (BU RAQAMLARNI ANIQ ISHLAT, hech narsani o'zgartirma):");
+    lines.push(priceOptionsText(ctx.computedOptions, ctx.qtyUsed));
+    if (ctx.computedOptions.every(function (o) { return !o.price; })) {
+      lines.push("Mijoz so'ragan miqdor hech biriga mos kelmadi (juda kam). Eng kam buyurtam talabini muloyimlik bilan ayt.");
+    } else {
+      lines.push("Mijozdan qaysi variant mos kelishini so'ra.");
+    }
+    return lines.join("\n");
+  }
+
+  if (ctx.newFocus && !s.data.pendingQty) {
+    lines.push("Mijoz \"" + s.data.focusName + "\" haqida so'radi. Bizda shu nomda quyidagi(lar) bor: " + variantsListText(s.data.focusVariants) + ".");
+    lines.push("Narxni aniq aytish uchun, mijozdan ODOB BILAN nechta dona kerakligini so'ra (narx miqdorga qarab farqlanadi, shuni tushuntir). Byudjet haqida SO'RAMA.");
+    return lines.join("\n");
+  }
+
+  if (ctx.categoryChanged && !ctx.newFocus) {
+    lines.push("Mijoz \"" + s.data.category + "\" kategoriyasini tanladi. Shu kategoriyada quyidagi mahsulotlar bor: " + categoryProductsText(s.data.category) + ".");
+    lines.push("Shularni qisqacha sanab o't, qaysi biriga aniq qiziqayotganini so'ra.");
+    return lines.join("\n");
+  }
+
+  if (!s.data.category && !s.data.focusVariants) {
+    lines.push("Mijoz nima borligini bilmoqchi yoki hali aniq mahsulot aytmagan. Quyidagi kategoriyalarni tabiiy tilda sanab o't, qaysi biriga qiziqayotganini so'ra:");
+    lines.push(categoryListText());
+    return lines.join("\n");
+  }
+
+  if (e.phone && !normalizePhone(e.phone)) {
+    lines.push("Mijoz telefon raqam yozdi, lekin format noto'g'ri ko'rinadi (9 xonali O'zbekiston raqami kerak). Qaytadan to'g'ri formatda so'ra, masalan +998901234567.");
+    return lines.join("\n");
+  }
+
+  if (e.phone && normalizePhone(e.phone) && s.data.items.length) {
+    lines.push("Mijoz telefon raqamini berdi: " + s.data.phone + ". Buni qabul qilganingni ayt, va agar buyurtmani tasdiqlashga tayyor bo'lsa \"tasdiqlayman\" deyishini so'ra.");
+    return lines.join("\n");
+  }
+
+  lines.push("Mijozga oddiy, do'stona javob ber, suhbatni tabiiy davom ettir.");
+  return lines.join("\n");
+}
+
+// ============================================================================
+// Asosiy funksiya - har bir kiruvchi xabar uchun chaqiriladi
+// ============================================================================
+
+function isActive(senderId) {
+  return sessions.has(senderId);
+}
+
+function cancel(senderId) {
+  sessions.delete(senderId);
+  scheduleSave();
+}
+
+function finalizeOrder(session) {
+  const total = session.data.items.reduce(function (sum, it) { return sum + (it.price ? it.price.total : 0); }, 0);
+  const order = {
+    id: generateOrderId(),
+    name: session.data.name,
+    items: session.data.items,
+    phone: session.data.phone,
+    deadline: session.data.deadline,
+    total: total,
   };
+  session.data.items = [];
+  session.data.phone = null;
+  session.data.deadline = null;
+  session.data.focusVariants = null;
+  session.data.focusName = null;
+  session.data.pendingQty = null;
+  session.data.lastPriceOptions = null;
+  session.data.category = null;
+  return order;
 }
 
-function isActive(senderId) { return sessions.has(senderId); }
-function cancel(senderId) { sessions.delete(senderId); }
-
-async function startWithText(senderId, lang, text) {
-  const session = { step: "name_product", lang: lang, data: {}, history: [], updatedAt: Date.now() };
-  sessions.set(senderId, session);
-  return handleMessage(senderId, text, lang);
-}
-
-async function handleMessage(senderId, text, lang) {
-  const session = sessions.get(senderId);
-  if (!session) return null;
+async function processMessage(senderId, text, lang) {
+  let session = sessions.get(senderId);
+  if (!session) {
+    const profile = customerProfiles.get(senderId);
+    session = {
+      lang: lang,
+      history: [],
+      data: {
+        name: profile ? profile.name : null,
+        gender: profile ? profile.gender : null,
+        category: null,
+        focusVariants: null,
+        focusName: null,
+        pendingQty: null,
+        lastPriceOptions: null,
+        items: [],
+        phone: null,
+        deadline: null,
+        unclearCount: 0,
+      },
+      updatedAt: Date.now(),
+    };
+    sessions.set(senderId, session);
+  }
+  session.lang = lang;
   session.updatedAt = Date.now();
+
+  // AI sozlanmagan bo'lsa - eski statik zaxira matni
+  if (!config.ai.apiKey) {
+    const r = responses.order[lang] || responses.order.uz;
+    return { text: r.text };
+  }
+
   session.history.push({ role: "user", content: text });
+  if (session.history.length > 24) session.history = session.history.slice(-24);
 
-  if (session.step === "name_product") {
-    const aiResult = await extractNameAndProduct(senderId, session.history, lang, session.data);
-    if (!aiResult) return botReply(session, "Savolingizni tushunmadim. Qanday mahsulot qidiryapsiz?");
-    if (aiResult.name) session.data.name = aiResult.name;
-    if (aiResult.product) session.data.product = aiResult.product;
-    if (aiResult.needs_clarification) return botReply(session, aiResult.clarification_question, findImageByKeyword(aiResult.image_keyword));
-    session.step = "quantity_budget";
-    return botReply(session, "Ajoyib! Nechta dona kerak va byudjetingiz qancha?");
+  const state = {
+    name: session.data.name,
+    category: session.data.category,
+    focusProduct: session.data.focusName,
+    hasItems: session.data.items.length > 0,
+    hasPhone: !!session.data.phone,
+  };
+
+  const extracted = await ai.extractTurn(senderId, session.history, lang, state, getCategories());
+
+  if (!extracted) {
+    scheduleSave();
+    return { text: lang === "ru" ? "Извините, технические трудности \ud83d\ude4f Попробуйте, пожалуйста, ещё раз." : "Kechirasiz, texnik nosozlik yuz berdi \ud83d\ude4f Iltimos, qayta urinib ko'ring." };
   }
 
-  if (session.step === "quantity_budget") {
-    const aiResult = await extractQuantityAndBudget(senderId, session.history, lang, session.data);
-    if (!aiResult || !aiResult.quantity) return botReply(session, "Miqdorni aniqroq ayta olasizmi?");
-    session.data.quantity = aiResult.quantity;
-    const rec = calculateRecommendation(session.data.product, session.data.quantity, session.data.budget);
-    session.data.recommendation = rec;
-    session.step = "deadline";
-    return botReply(session, `Sizga "${rec.name}" mos keladi. Buyurtma qachongacha tayyor bo'lishi kerak?`, rec.image);
-  }
-
-  if (session.step === "deadline") {
-    const aiResult = await extractDeadline(senderId, session.history, lang);
-    session.data.deadline = aiResult ? aiResult.deadline : text;
-    session.step = "phone";
-    return botReply(session, "Tushundim. Operatorimiz bog'lanishi uchun telefon raqamingizni yozing (+998...).");
-  }
-
-  if (session.step === "phone") {
-    session.data.phone = text;
-    const finalData = { ...session.data };
+  if (extracted.wants_cancel) {
     sessions.delete(senderId);
-    return { text: `Rahmat, ${finalData.name || "mijoz"}! Ariza qabul qilindi.`, finished: true, order: finalData };
+    scheduleSave();
+    return { text: lang === "ru" ? "Хорошо, отменено. Если понадоблюсь снова - просто напишите \ud83d\ude0a" : "Mayli, bekor qildim. Yana kerak bo'lib qolsa, shu yerga yozib qoling \ud83d\ude0a" };
   }
+
+  if (!extracted.is_unclear) session.data.unclearCount = 0;
+
+  // --- ism va jins ---
+  if (extracted.customer_name && !session.data.name) {
+    session.data.name = extracted.customer_name;
+    if (extracted.likely_gender) session.data.gender = extracted.likely_gender;
+    customerProfiles.set(senderId, { name: session.data.name, gender: session.data.gender });
+  }
+
+  // --- kategoriya ---
+  let categoryChanged = false;
+  const cats = getCategories();
+  if (extracted.category && cats.includes(extracted.category) && session.data.category !== extracted.category) {
+    session.data.category = extracted.category;
+    categoryChanged = true;
+  }
+
+  // --- mahsulot matni -> fokus ---
+  let newFocus = false;
+  if (extracted.product_text) {
+    const variants = findProductVariants(extracted.product_text);
+    if (variants.length) {
+      session.data.focusVariants = variants;
+      session.data.focusName = variants[0].name;
+      session.data.category = variants[0].category;
+      categoryChanged = false;
+      newFocus = true;
+      if (!extracted.quantity) {
+        session.data.pendingQty = null;
+        session.data.lastPriceOptions = null;
+      }
+    }
+  }
+
+  // --- soni ---
+  if (extracted.quantity && extracted.quantity > 0) {
+    session.data.pendingQty = extracted.quantity;
+  }
+
+  // --- narxlarni hisoblash ---
+  let computedOptions = null;
+  if (session.data.focusVariants && session.data.pendingQty) {
+    computedOptions = priceOptionsForQuantity(session.data.focusVariants, session.data.pendingQty);
+    session.data.lastPriceOptions = computedOptions;
+  }
+
+  // --- tanlangan narx -> savatga qo'shish ---
+  let selectedItem = null;
+  const qtyUsed = session.data.pendingQty;
+  if (extracted.selected_price && session.data.lastPriceOptions && session.data.lastPriceOptions.length) {
+    const withPrice = session.data.lastPriceOptions.filter(function (o) { return o.price; });
+    if (withPrice.length) {
+      selectedItem = withPrice.reduce(function (a, b) {
+        return Math.abs(a.price.unitPrice - extracted.selected_price) <= Math.abs(b.price.unitPrice - extracted.selected_price) ? a : b;
+      });
+      const label = selectedItem.name + " (" + selectedItem.code + ")" + (selectedItem.optionLabel ? " - " + selectedItem.optionLabel : "");
+      session.data.items.push({ product: label, quantity: qtyUsed + " dona", price: selectedItem.price });
+      session.data.focusVariants = null;
+      session.data.focusName = null;
+      session.data.pendingQty = null;
+      session.data.lastPriceOptions = null;
+      computedOptions = null;
+    }
+  }
+
+  // --- telefon va muddat ---
+  if (extracted.phone) {
+    const normalized = normalizePhone(extracted.phone);
+    if (normalized) session.data.phone = normalized;
+  }
+  if (extracted.deadline) session.data.deadline = extracted.deadline;
+
+  // --- operator/yakunlash ---
+  let orderFinalized = null;
+  let shouldNotifyAdmin = false;
+  if (extracted.wants_operator) {
+    shouldNotifyAdmin = true;
+    if (session.data.items.length && session.data.phone) {
+      orderFinalized = finalizeOrder(session);
+    }
+  }
+
+  if (extracted.is_unclear) {
+    session.data.unclearCount = (session.data.unclearCount || 0) + 1;
+    if (session.data.unclearCount >= 3) {
+      shouldNotifyAdmin = true;
+      session.data.unclearCount = 0;
+    }
+  }
+
+  const situation = buildSituation(
+    { extracted: extracted, session: session, computedOptions: computedOptions, selectedItem: selectedItem, categoryChanged: categoryChanged, newFocus: newFocus, orderFinalized: orderFinalized, qtyUsed: qtyUsed },
+    lang
+  );
+
+  const addressName = session.data.name ? session.data.name + genderSuffix(session.data.gender, lang) : null;
+  let reply = await ai.composeReply(senderId, session.history, lang, situation, addressName);
+  if (!reply) reply = situation;
+
+  session.history.push({ role: "assistant", content: reply });
+  if (session.history.length > 24) session.history = session.history.slice(-24);
+
+  scheduleSave();
+
+  const result = { text: reply };
+  if (selectedItem && selectedItem.image) {
+    result.image = selectedItem.image;
+  } else if (session.data.focusVariants && session.data.focusVariants.length === 1 && session.data.focusVariants[0].image) {
+    result.image = session.data.focusVariants[0].image;
+  }
+  if (shouldNotifyAdmin) {
+    result.adminNotice = {
+      senderId: senderId,
+      customerName: session.data.name,
+      order: orderFinalized,
+    };
+  }
+  return result;
 }
 
-module.exports = { isActive, startWithText, handleMessage, cancel };
+module.exports = {
+  isActive: isActive,
+  cancel: cancel,
+  processMessage: processMessage,
+  getCategories: getCategories,
+};
