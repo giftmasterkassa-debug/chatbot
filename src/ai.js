@@ -25,7 +25,7 @@ function langName(lang) {
 }
 
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
-const RATE_LIMIT_MAX = 100;
+const RATE_LIMIT_MAX = 24;
 const rateMap = new Map();
 
 function isRateLimited(senderId) {
@@ -139,38 +139,72 @@ async function extractTurn(senderId, history, lang, state, categories) {
 }
 
 async function composeReply(senderId, history, lang, situation, addressName, factsBlock) {
-  const instructions = [
-    "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
-    "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - ko'rsatmalarga rioya qil:",
-    "--- HOLAT ---",
-    situation,
-    "--- HOLAT TUGADI ---",
-    factsBlock
-      ? "MUHIM: holatda aytilgan joyga ANIQ BIR MARTA, o'zgartirmasdan \"[[FAKTLAR]]\" so'zini (ikki kvadrat qavs bilan, aynan shu yozilishda) qo'y - bu joyga keyin tizim aniq raqamlarni avtomat qo'shadi. SEN O'ZING HECH QANDAY NARX/RAQAM YOZMA - faqat [[FAKTLAR]] dan oldin qisqa kirish jumlasi va undan keyin (kerak bo'lsa) qisqa savol yoz."
-      : "Bu safar qo'shiladigan tayyor raqamli blok yo'q - oddiy tabiiy javob yoz.",
-    addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, lekin tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
-    "Javobni " + langName(lang) + " tilida, qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
-    "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma.",
-    "Faqat compose_reply tool orqali javob ber, undan tashqari hech qanday matn yozma.",
-  ].join("\n");
+  const instructions = factsBlock
+    ? [
+        "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
+        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan:",
+        "--- HOLAT ---",
+        situation,
+        "--- HOLAT TUGADI ---",
+        "MUHIM QOIDA: Mijozga ANIQ NARX/RAQAMLAR ko'rsatiladigan alohida blok BOR - bu blokni SEN YOZMAYSAN, tizim avtomat qo'yadi. Sening vazifang FAQAT ikkita qisqa matn yozish:",
+        "  1) intro - shu narx blokidan OLDIN aytiladigan 1 jumlali kirish (masalan \"Albatta, mana narxlarimiz:\"). Bu yerda HECH QANDAY RAQAM/NARX YOZMA - chunki ular sendan KEYIN avtomat qo'shiladi, sen ularni hali bilmaysan deb hisobla.",
+        "  2) closing - narx blokidan KEYIN aytiladigan qisqa savol/yopilish jumlasi (masalan \"Qaysi biri sizga mos keladi?\"). Bu yerda ham raqam yozma.",
+        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum.",
+        "Javobni " + langName(lang) + " tilida, qisqa va samimiy ohangda yoz.",
+        "Faqat compose_reply_with_facts tool orqali javob ber.",
+      ].join("\n")
+    : [
+        "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
+        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - shu asosida tabiiy javob yoz (faktlarni o'zgartirma, to'qima):",
+        "--- HOLAT ---",
+        situation,
+        "--- HOLAT TUGADI ---",
+        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
+        "Javobni " + langName(lang) + " tilida, qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
+        "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma.",
+        "Faqat compose_reply tool orqali javob ber.",
+      ].join("\n");
 
-  const tool = {
-    type: "function",
-    name: "compose_reply",
-    description: "Berilgan holat tasvirini tabiiy, suhbatdosh javobga aylantiradi.",
-    strict: true,
-    parameters: {
-      type: "object",
-      properties: {
-        reply: { type: "string", description: "Mijozga yuboriladigan yakuniy javob matni" },
-      },
-      required: ["reply"],
-      additionalProperties: false,
-    },
-  };
+  const tool = factsBlock
+    ? {
+        type: "function",
+        name: "compose_reply_with_facts",
+        description: "Narx blokidan oldin va keyin keladigan qisqa matnlarni yozadi. Raqam/narx yozmaydi - buni tizim avtomat qo'shadi.",
+        strict: true,
+        parameters: {
+          type: "object",
+          properties: {
+            intro: { type: "string", description: "Narx blokidan OLDIN keladigan qisqa kirish jumlasi. Raqam yozma." },
+            closing: { type: "string", description: "Narx blokidan KEYIN keladigan qisqa savol/yopilish jumlasi. Raqam yozma." },
+          },
+          required: ["intro", "closing"],
+          additionalProperties: false,
+        },
+      }
+    : {
+        type: "function",
+        name: "compose_reply",
+        description: "Berilgan holat tasvirini tabiiy, suhbatdosh javobga aylantiradi.",
+        strict: true,
+        parameters: {
+          type: "object",
+          properties: {
+            reply: { type: "string", description: "Mijozga yuboriladigan yakuniy javob matni" },
+          },
+          required: ["reply"],
+          additionalProperties: false,
+        },
+      };
 
   const result = await callTool(senderId, instructions, history, tool);
-  return result ? result.reply : null;
+  if (!result) return null;
+
+  if (factsBlock) {
+    const intro = (result.intro || "").trim();
+    const closing = (result.closing || "").trim();
+    return [intro, factsBlock, closing].filter(Boolean).join("\n\n");
+  }
+  return result.reply;
 }
 
 module.exports = { extractTurn: extractTurn, composeReply: composeReply };
