@@ -16,7 +16,8 @@
         "minQty": 1000,
         "price": 2700
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-04",
@@ -35,7 +36,8 @@
         "minQty": 1000,
         "price": 3500
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-08",
@@ -54,7 +56,8 @@
         "minQty": 1000,
         "price": 4200
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-10",
@@ -73,7 +76,8 @@
         "minQty": 1000,
         "price": 7500
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-11",
@@ -92,7 +96,8 @@
         "minQty": 1000,
         "price": 7000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-16",
@@ -115,7 +120,8 @@
         "minQty": 1000,
         "price": 22800
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-18",
@@ -138,7 +144,8 @@
         "minQty": 1000,
         "price": 23000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-19",
@@ -161,7 +168,8 @@
         "minQty": 1000,
         "price": 33000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-21",
@@ -184,7 +192,8 @@
         "minQty": 1000,
         "price": 33000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-25",
@@ -203,7 +212,8 @@
         "minQty": 1000,
         "price": 7500
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-29",
@@ -226,7 +236,8 @@
         "minQty": 500,
         "price": 85000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-31",
@@ -249,7 +260,8 @@
         "minQty": 1000,
         "price": 7000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-34",
@@ -268,7 +280,8 @@
         "minQty": 100,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-35",
@@ -287,7 +300,8 @@
         "minQty": 100,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-37",
@@ -306,7 +320,8 @@
         "minQty": 500,
         "price": 2200
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-38",
@@ -325,7 +340,8 @@
         "minQty": 1000,
         "price": 9500
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "100-39",
@@ -344,7 +360,8 @@
         "minQty": 1000,
         "price": 15000
       }
-    ]
+    ],
+    "category": "Ruchka va qalam"
   },
   {
     "code": "107-11",
@@ -363,7 +380,8 @@
         "minQty": 10,
         "price": 280000
       }
-    ]
+    ],
+    "category": "Ryukzaklar"
   },
   {
     "code": "107-14",
@@ -382,7 +400,8 @@
         "minQty": 10,
         "price": 390000
       }
-    ]
+    ],
+    "category": "Ryukzaklar"
   },
   {
     "code": "107-17",
@@ -401,7 +420,8 @@
         "minQty": 10,
         "price": 280000
       }
-    ]
+    ],
+    "category": "Ryukzaklar"
   },
   {
     "code": "107-18",
@@ -420,7 +440,8 @@
         "minQty": 10,
         "price": 390000
       }
-    ]
+    ],
+    "category": "Ryukzaklar"
   },
   {
     "code": "107-01",
@@ -439,7 +460,8 @@
         "minQty": 100,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Shopperlar"
   },
   {
     "code": "101-89",
@@ -458,7 +480,8 @@
         "minQty": 10,
         "price": 1600000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "101-90",
@@ -477,7 +500,8 @@
         "minQty": 10,
         "price": 1250000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "101-91",
@@ -496,7 +520,8 @@
         "minQty": 10,
         "price": 1300000
       }
-    ]
+    ],
+    "category": "Sovg'a to'plamlari"
   },
   {
     "code": "101-92",
@@ -515,7 +540,8 @@
         "minQty": 10,
         "price": 1500000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "101-93",
@@ -534,7 +560,8 @@
         "minQty": 10,
         "price": 1200000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "101-75",
@@ -553,7 +580,8 @@
         "minQty": 10,
         "price": 500000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "101-76",
@@ -572,7 +600,8 @@
         "minQty": 10,
         "price": 900000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "101-77",
@@ -591,7 +620,8 @@
         "minQty": 10,
         "price": 280000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "101-78",
@@ -610,7 +640,8 @@
         "minQty": 10,
         "price": 200000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "101-79",
@@ -629,7 +660,8 @@
         "minQty": 10,
         "price": 450000
       }
-    ]
+    ],
+    "category": "Korporativ naborlar"
   },
   {
     "code": "109-10",
@@ -648,7 +680,8 @@
         "minQty": 50,
         "price": 40000
       }
-    ]
+    ],
+    "category": "Hamyon, portmone va kartxolderlar"
   },
   {
     "code": "109-11",
@@ -667,7 +700,8 @@
         "minQty": 50,
         "price": 50000
       }
-    ]
+    ],
+    "category": "Hamyon, portmone va kartxolderlar"
   },
   {
     "code": "109-12",
@@ -686,7 +720,8 @@
         "minQty": 50,
         "price": 30000
       }
-    ]
+    ],
+    "category": "Vizitnitsalar"
   },
   {
     "code": "109-13",
@@ -705,7 +740,8 @@
         "minQty": 50,
         "price": 30000
       }
-    ]
+    ],
+    "category": "Vizitnitsalar"
   },
   {
     "code": "109-15",
@@ -724,7 +760,8 @@
         "minQty": 50,
         "price": 150000
       }
-    ]
+    ],
+    "category": "Hamyon, portmone va kartxolderlar"
   },
   {
     "code": "109-16",
@@ -743,7 +780,8 @@
         "minQty": 50,
         "price": 100000
       }
-    ]
+    ],
+    "category": "Hamyon, portmone va kartxolderlar"
   },
   {
     "code": "109-17",
@@ -762,7 +800,8 @@
         "minQty": 50,
         "price": 30000
       }
-    ]
+    ],
+    "category": "Vizitnitsalar"
   },
   {
     "code": "110-28",
@@ -781,7 +820,8 @@
         "minQty": 50,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Brelоклар"
   },
   {
     "code": "110-29",
@@ -800,7 +840,8 @@
         "minQty": 50,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Brelоклар"
   },
   {
     "code": "110-32",
@@ -819,7 +860,8 @@
         "minQty": 50,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Brelоклар"
   },
   {
     "code": "110-33",
@@ -838,7 +880,8 @@
         "minQty": 10,
         "price": 130000
       }
-    ]
+    ],
+    "category": "Fleshkalar"
   },
   {
     "code": "110-34",
@@ -857,7 +900,8 @@
         "minQty": 50,
         "price": 100000
       }
-    ]
+    ],
+    "category": "Fleshkalar"
   },
   {
     "code": "110-35",
@@ -876,7 +920,8 @@
         "minQty": 10,
         "price": 150000
       }
-    ]
+    ],
+    "category": "Brelоклар"
   },
   {
     "code": "110-36",
@@ -895,7 +940,8 @@
         "minQty": 10,
         "price": 150000
       }
-    ]
+    ],
+    "category": "Fleshkalar"
   },
   {
     "code": "113-04",
@@ -914,7 +960,8 @@
         "minQty": 10,
         "price": 150000
       }
-    ]
+    ],
+    "category": "Soyabonlar"
   },
   {
     "code": "113-01",
@@ -933,7 +980,8 @@
         "minQty": 10,
         "price": 144000
       }
-    ]
+    ],
+    "category": "Soyabonlar"
   },
   {
     "code": "113-02",
@@ -952,7 +1000,8 @@
         "minQty": 10,
         "price": 150000
       }
-    ]
+    ],
+    "category": "Soyabonlar"
   },
   {
     "code": "113-03",
@@ -971,7 +1020,8 @@
         "minQty": 10,
         "price": 160000
       }
-    ]
+    ],
+    "category": "Soyabonlar"
   },
   {
     "code": "108-08-S",
@@ -982,7 +1032,8 @@
         "minQty": 1,
         "price": 630000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-08-M",
@@ -993,7 +1044,8 @@
         "minQty": 1,
         "price": 750000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-08-L",
@@ -1004,7 +1056,8 @@
         "minQty": 1,
         "price": 850000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-01",
@@ -1023,7 +1076,8 @@
         "minQty": 50,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-02",
@@ -1042,7 +1096,8 @@
         "minQty": 50,
         "price": 85000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-03",
@@ -1061,7 +1116,8 @@
         "minQty": 50,
         "price": 135000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-04",
@@ -1080,7 +1136,8 @@
         "minQty": 50,
         "price": 135000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-06",
@@ -1099,7 +1156,8 @@
         "minQty": 10,
         "price": 290000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "108-07",
@@ -1118,7 +1176,8 @@
         "minQty": 10,
         "price": 2600000
       }
-    ]
+    ],
+    "category": "Bayroqlar"
   },
   {
     "code": "114-73",
@@ -1137,7 +1196,8 @@
         "minQty": 5,
         "price": 700000
       }
-    ]
+    ],
+    "category": "Statuetka va sovg'abop buyumlar"
   },
   {
     "code": "114-74",
@@ -1156,7 +1216,8 @@
         "minQty": 5,
         "price": 800000
       }
-    ]
+    ],
+    "category": "Statuetka va sovg'abop buyumlar"
   },
   {
     "code": "114-75",
@@ -1175,7 +1236,8 @@
         "minQty": 5,
         "price": 600000
       }
-    ]
+    ],
+    "category": "Statuetka va sovg'abop buyumlar"
   },
   {
     "code": "114-55",
@@ -1194,7 +1256,8 @@
         "minQty": 5,
         "price": 800000
       }
-    ]
+    ],
+    "category": "Plaketkalar"
   },
   {
     "code": "114-56",
@@ -1213,7 +1276,8 @@
         "minQty": 5,
         "price": 500000
       }
-    ]
+    ],
+    "category": "Plaketkalar"
   },
   {
     "code": "114-76-18",
@@ -1228,7 +1292,8 @@
         "minQty": 10,
         "price": 400000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "114-76-22",
@@ -1243,7 +1308,8 @@
         "minQty": 10,
         "price": 470000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "114-76-25",
@@ -1258,7 +1324,8 @@
         "minQty": 10,
         "price": 550000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "114-76-30",
@@ -1273,7 +1340,8 @@
         "minQty": 10,
         "price": 670000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "114-76-40",
@@ -1288,7 +1356,8 @@
         "minQty": 10,
         "price": 850000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "116-01",
@@ -1307,7 +1376,8 @@
         "minQty": 50,
         "price": 10500
       }
-    ]
+    ],
+    "category": "Znachoklar"
   },
   {
     "code": "116-02",
@@ -1326,7 +1396,8 @@
         "minQty": 20,
         "price": 50000
       }
-    ]
+    ],
+    "category": "Znachoklar"
   },
   {
     "code": "116-03",
@@ -1345,7 +1416,8 @@
         "minQty": 10,
         "price": 35000
       }
-    ]
+    ],
+    "category": "Znachoklar"
   },
   {
     "code": "116-04",
@@ -1364,7 +1436,8 @@
         "minQty": 50,
         "price": 25000
       }
-    ]
+    ],
+    "category": "Znachoklar"
   },
   {
     "code": "112-15",
@@ -1391,7 +1464,8 @@
         "minQty": 100,
         "price": 52500
       }
-    ]
+    ],
+    "category": "Kalendarlar"
   },
   {
     "code": "112-02-W",
@@ -1406,7 +1480,8 @@
         "minQty": 500,
         "price": 6800
       }
-    ]
+    ],
+    "category": "Ofis buyumlari"
   },
   {
     "code": "112-02-C",
@@ -1421,7 +1496,8 @@
         "minQty": 500,
         "price": 7700
       }
-    ]
+    ],
+    "category": "Ofis buyumlari"
   },
   {
     "code": "112-04",
@@ -1448,7 +1524,8 @@
         "minQty": 3000,
         "price": 220
       }
-    ]
+    ],
+    "category": "Bosma mahsulotlar / Paketlar"
   },
   {
     "code": "112-05",
@@ -1475,7 +1552,8 @@
         "minQty": 500,
         "price": 2200
       }
-    ]
+    ],
+    "category": "Bosma mahsulotlar / Paketlar"
   },
   {
     "code": "112-06",
@@ -1498,7 +1576,8 @@
         "minQty": 1000,
         "price": 2000
       }
-    ]
+    ],
+    "category": "Bosma mahsulotlar / Paketlar"
   },
   {
     "code": "112-07",
@@ -1521,7 +1600,8 @@
         "minQty": 100,
         "price": 16000
       }
-    ]
+    ],
+    "category": "Kalendarlar"
   },
   {
     "code": "112-08",
@@ -1544,7 +1624,8 @@
         "minQty": 100,
         "price": 14000
       }
-    ]
+    ],
+    "category": "Ofis buyumlari"
   },
   {
     "code": "111-01-A",
@@ -1563,7 +1644,8 @@
         "minQty": 100,
         "price": 13300
       }
-    ]
+    ],
+    "category": "Bosma mahsulotlar / Paketlar"
   },
   {
     "code": "111-01-B",
@@ -1582,7 +1664,8 @@
         "minQty": 100,
         "price": 14500
       }
-    ]
+    ],
+    "category": "Bosma mahsulotlar / Paketlar"
   },
   {
     "code": "111-01-C",
@@ -1601,7 +1684,8 @@
         "minQty": 100,
         "price": 14000
       }
-    ]
+    ],
+    "category": "Bosma mahsulotlar / Paketlar"
   },
   {
     "code": "111-01-D",
@@ -1620,7 +1704,8 @@
         "minQty": 100,
         "price": 16800
       }
-    ]
+    ],
+    "category": "Bosma mahsulotlar / Paketlar"
   },
   {
     "code": "102-22",
@@ -1661,7 +1746,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kundaliklar (ejednevnik)"
   },
   {
     "code": "102-23",
@@ -1702,7 +1788,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kundaliklar (ejednevnik)"
   },
   {
     "code": "102-25",
@@ -1743,7 +1830,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kundaliklar (ejednevnik)"
   },
   {
     "code": "102-01",
@@ -1784,7 +1872,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kundaliklar (ejednevnik)"
   },
   {
     "code": "102-04",
@@ -1825,7 +1914,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kundaliklar (ejednevnik)"
   },
   {
     "code": "104-02",
@@ -1848,7 +1938,8 @@
         "minQty": 1000,
         "price": 45500
       }
-    ]
+    ],
+    "category": "Devor soatlari"
   },
   {
     "code": "104-03",
@@ -1897,7 +1988,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Devor soatlari"
   },
   {
     "code": "104-05",
@@ -1920,7 +2012,8 @@
         "minQty": 1000,
         "price": 36500
       }
-    ]
+    ],
+    "category": "Devor soatlari"
   },
   {
     "code": "103-01",
@@ -1961,7 +2054,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Termoslar"
   },
   {
     "code": "103-02",
@@ -2002,7 +2096,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "103-03",
@@ -2021,7 +2116,8 @@
         "minQty": 500,
         "price": 95000
       }
-    ]
+    ],
+    "category": "Termoslar"
   },
   {
     "code": "103-05",
@@ -2062,7 +2158,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Termoslar"
   },
   {
     "code": "103-07",
@@ -2103,7 +2200,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Termoslar"
   },
   {
     "code": "103-23",
@@ -2122,7 +2220,8 @@
         "minQty": 100,
         "price": 90000
       }
-    ]
+    ],
+    "category": "Termoslar"
   },
   {
     "code": "105-06",
@@ -2141,7 +2240,8 @@
         "minQty": 120,
         "price": 40000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "105-07",
@@ -2160,7 +2260,8 @@
         "minQty": 120,
         "price": 45000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "105-08",
@@ -2179,7 +2280,8 @@
         "minQty": 500,
         "price": 25000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "105-01",
@@ -2198,7 +2300,8 @@
         "minQty": 500,
         "price": 21000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "105-02",
@@ -2217,7 +2320,8 @@
         "minQty": 500,
         "price": 33000
       }
-    ]
+    ],
+    "category": "Krujka va idishlar"
   },
   {
     "code": "106-06",
@@ -2236,7 +2340,8 @@
         "minQty": 500,
         "price": 55000
       }
-    ]
+    ],
+    "category": "Kiyim va kepkalar"
   },
   {
     "code": "106-07",
@@ -2285,7 +2390,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kiyim va kepkalar"
   },
   {
     "code": "106-01",
@@ -2334,7 +2440,8 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kiyim va kepkalar"
   },
   {
     "code": "106-02",
@@ -2383,6 +2490,7 @@
           }
         ]
       }
-    ]
+    ],
+    "category": "Kiyim va kepkalar"
   }
 ]
