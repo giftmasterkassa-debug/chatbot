@@ -25,7 +25,7 @@ function langName(lang) {
 }
 
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
-const RATE_LIMIT_MAX = 24;
+const RATE_LIMIT_MAX = 100;
 const rateMap = new Map();
 
 function isRateLimited(senderId) {
