@@ -244,7 +244,7 @@ function buildSituation(ctx, lang) {
 
   if (ctx.orderFinalized) {
     factsBlock = orderSummaryText(ctx.orderFinalized);
-    lines.push("BUYURTMA HOZIRGINA YAKUNLANDI. Mijozga rahmat ayt, buyurtma tafsilotlari [[FAKTLAR]] joyiga avtomat qo'shiladi (sen bu raqamlarni o'zing yozma), so'ng operator tez orada bog'lanishini ayt.");
+    lines.push("BUYURTMA HOZIRGINA YAKUNLANDI. Mijozga rahmat ayt, buyurtma qabul qilingani va operatorga yuborilganini ayt, tez orada bog'lanishini ayt. Buyurtma tafsilotlari alohida (sendan tashqari) ko'rsatiladi.");
     return { situation: lines.join("\n"), factsBlock: factsBlock };
   }
 
@@ -266,7 +266,7 @@ function buildSituation(ctx, lang) {
     const it = ctx.selectedItem;
     factsBlock = "\u2022 " + it.name + " (" + it.code + ")" + (it.optionLabel ? " - " + it.optionLabel : "") +
       " \u2014 " + ctx.qtyUsed + " dona, " + formatMoney(it.price.unitPrice) + " so'm/dona, jami " + formatMoney(it.price.total) + " so'm";
-    lines.push("Mijoz narx variantini tanladi - bu savatga qo'shildi. Tafsilotlar [[FAKTLAR]] joyiga avtomat qo'shiladi (raqamlarni o'zing yozma, faqat \"savatga qo'shildi\" kabi tasdiq ber).");
+    lines.push("Mijoz narx variantini tanladi - bu savatga qo'shildi. Tafsilotlar alohida (sendan tashqari) ko'rsatiladi - sen faqat \"savatga qo'shildi\" kabi qisqa tasdiq ber.");
     if (!s.data.phone) {
       lines.push("So'ngra aloqa uchun telefon raqamini so'ra.");
     } else {
@@ -278,12 +278,11 @@ function buildSituation(ctx, lang) {
   if (ctx.computedOptions && ctx.computedOptions.length) {
     factsBlock = priceOptionsBlock(ctx.computedOptions, ctx.qtyUsed);
     lines.push(
-      "Mijoz " + ctx.qtyUsed + " dona uchun narxlarni bilishni so'radi. Narx ro'yxati [[FAKTLAR]] joyiga AVTOMAT qo'shiladi - " +
-      "SEN HECH QANDAY RAQAM YOZMA, faqat shu joygacha qisqa kirish jumlasi yoz (masalan \"Albatta, mana narxlarimiz:\"), " +
-      "[[FAKTLAR]] dan keyin esa mijozdan qaysi variant mos kelishini so'rovchi qisqa savol yoz."
+      "Mijoz " + ctx.qtyUsed + " dona uchun narxlarni bilishni so'radi. Narx ro'yxati alohida (sendan tashqari) ko'rsatiladi - " +
+      "shuning uchun sen FAQAT shu ro'yxatdan OLDIN keladigan qisqa kirish jumlasi va undan KEYIN keladigan qisqa savol yozasan, raqamlarni o'zing yozmaysan."
     );
     if (ctx.computedOptions.every(function (o) { return !o.price; })) {
-      lines.push("Diqqat: hech biri mos kelmadi (juda kam miqdor so'ralgan) - shuni nazokat bilan tushuntir, [[FAKTLAR]] o'zida buni ko'rsatadi.");
+      lines.push("Diqqat: hech biri mos kelmadi (juda kam miqdor so'ralgan) - shuni nazokat bilan tushuntir, narx ro'yxati o'zida buni ko'rsatadi.");
     }
     return { situation: lines.join("\n"), factsBlock: factsBlock };
   }
@@ -508,17 +507,12 @@ async function processMessage(senderId, text, lang) {
 
   const addressName = session.data.name ? session.data.name + genderSuffix(session.data.gender, lang) : null;
   let reply = await ai.composeReply(senderId, session.history, lang, situation.situation, addressName, situation.factsBlock);
-  if (!reply) reply = situation.situation;
 
-  // composeReply [[FAKTLAR]] o'rnini to'g'ri almashtirgan bo'lishi kerak - lekin ishonchlilik
-  // uchun JS o'zi ham tekshiradi: agar AI placeholder'ni unutib qoldirsa yoki butunlay
-  // o'chirib yuborsa, raqamlarni baribir oxiriga MAJBURIY qo'shamiz (narx hech qachon yo'qolmasin).
-  if (situation.factsBlock) {
-    if (reply.includes("[[FAKTLAR]]")) {
-      reply = reply.replace("[[FAKTLAR]]", situation.factsBlock);
-    } else if (!reply.includes(situation.factsBlock)) {
-      reply = reply + "\n\n" + situation.factsBlock;
-    }
+  // ai.composeReply narx faktini (agar bo'lsa) o'zi to'g'ri joyga sendvich qilib qo'shadi -
+  // AI narx yoziladigan joyga UMUMAN tegmaydi (alohida intro/closing maydonlari orqali).
+  // Shunga qaramay, AI butunlay ishlamay qolsa (masalan tarmoq xatosi) - faktni baribir yuboramiz.
+  if (!reply) {
+    reply = situation.factsBlock ? situation.factsBlock : situation.situation;
   }
 
   session.history.push({ role: "assistant", content: reply });
