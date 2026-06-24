@@ -1,17 +1,16 @@
-// AI (OpenAI API) integratsiyasi - YANGI ARXITEKTURA.
+// AI (OpenAI API) integratsiyasi - YANGI ARXITEKTURA + PROFESSIONAL SOTUVCHI SHAXSIYATI.
 //
-// Eski tizimda har bir "qadam" (ism, soni, muddat...) uchun alohida tor AI so'rovi bo'lgan
-// va suhbat tarixi qadamlar orasida tozalanardi. Endi BUTUN suhbat tarixi saqlanadi va
-// har bir mijoz xabari uchun IKKI bosqichli AI chaqirig'i ishlatiladi:
-//
-//   1) extractTurn  - mijoz xabaridan FAKTLARNI ajratib oladi (ism, mahsulot/kategoriya,
-//                      soni, tanlangan narx, telefon, muddat, bekor/operator/tasdiqlash niyati,
-//                      mavzudan tashqari savol). Bu funksiya hech narsa "to'qib chiqarmaydi" -
-//                      faqat mijoz nima degani haqida struktura qaytaradi.
-//   2) composeReply - orderFlow.js JS orqali ANIQ hisoblagan faktlarni (narxlar, mahsulot
-//                      ro'yxati va h.k.) tabiiy, suhbatdosh tilda javobga aylantiradi. Bu
-//                      funksiya RAQAMLARNI O'ZI HISOBLAMAYDI - faqat berilgan faktlarni
-//                      chiroyli jumla qilib beradi (shu sabab narx xato bo'lib qolmaydi).
+// 1) extractTurn  - mijoz xabaridan FAKTLARNI ajratib oladi (ism, mahsulot/kategoriya, soni,
+//                    tanlangan narx, telefon, e'tiroz TURI, bekor/operator niyati, mavzudan
+//                    tashqari savol). Hech narsa "to'qib chiqarmaydi" - faqat struktura beradi.
+// 2) composeReply - JS hisoblagan ANIQ faktlarni (narxlar va h.k.) professional, tajribali
+//                    B2B sotuvchi ohangida javobga aylantiradi. Raqamlarni o'zi yozmaydi -
+//                    shu sabab narx hech qachon xato bo'lib qolmaydi. Bundan tashqari:
+//                    - umumiy/zerikarli yopilish jumlalarini (masalan "yana qanday yordam
+//                      bera olaman?") ISHLATMASLIKKA majburlanadi - har javob ANIQ keyingi
+//                      qadam (savol/taklif/CTA) bilan tugaydi.
+//                    - e'tirozlarga TURI bo'yicha (narx/ishonch/vaqt/raqobatchi/ikkilanish)
+//                      mos sotuv taktikasi bilan javob beradi.
 //
 // OPENAI_API_KEY sozlanmagan bo'lsa, ikkisi ham null qaytaradi - orderFlow.js o'zining
 // oddiy (AI'siz) zaxira matnlariga o'tadi.
@@ -19,10 +18,6 @@
 const config = require("./config");
 
 const API_URL = "https://api.openai.com/v1/responses";
-
-function langName(lang) {
-  return lang === "ru" ? "rus" : "o'zbek";
-}
 
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000;
 const RATE_LIMIT_MAX = 24;
@@ -83,25 +78,29 @@ async function callTool(senderId, instructions, history, tool) {
   }
 }
 
+// ============================================================================
+// 1-BOSQICH: extractTurn
+// ============================================================================
 async function extractTurn(senderId, history, lang, state, categories) {
   state = state || {};
   const instructions = [
     "Sen Instagram do'koni uchun mijozlar bilan suhbatlashadigan sotuv yordamchisisan.",
     "Vazifang JAVOB YOZISH EMAS - faqat mijozning SO'NGGI xabaridan (oldingi suhbat kontekstini hisobga olib) quyidagi faktlarni ajratib olish:",
-    "- language: mijoz qaysi tilda yozayotgani - 'uz' (o'zbek, lotin yoki kirill) yoki 'ru' (rus). Butun suhbat kontekstidan kelib chiq, faqat oxirgi xabardan emas - agar mijoz avval \"o'zbekcha gaplasha olasizmi\" kabi aniq aytgan bo'lsa, shuni hisobga ol va keyingi xabarlarda ham 'uz' deb belgilashda davom et.",
+    "- language: mijoz qaysi tilda yozayotgani - 'uz' (o'zbek, lotin yoki kirill) yoki 'ru' (rus). Butun suhbat kontekstidan kelib chiq - agar mijoz avval \"o'zbekcha gaplasha olasizmi\" kabi aniq aytgan bo'lsa, shuni hisobga ol va keyingi xabarlarda ham shu tilda davom et.",
     "- script: agar til 'uz' bo'lsa - mijoz lotin ('latin') yoki kirill ('cyrillic') alifbosida yozayapti. Til 'ru' bo'lsa - har doim 'cyrillic'.",
     "- customer_name: agar mijoz ismini aytgan bo'lsa (oldin aytilmagan bo'lsa).",
     "- likely_gender: agar ism aytilgan bo'lsa, shu ism odatda erkak ('male') yoki ayolga ('female') tegishli ekanini taxmin qil; aniq bo'lmasa null.",
-    "- category: agar mijoz quyidagi kategoriyalardan biriga ishora qilsa (to'g'ridan-to'g'ri yoki tabiiy so'z bilan) - ANIQ shu ro'yxatdagi nomni yoz: " + categories.join(", ") + ". Mos kelmasa null.",
+    "- category: agar mijoz quyidagi kategoriyalardan biriga ishora qilsa - ANIQ shu ro'yxatdagi nomni yoz: " + categories.join(", ") + ". Mos kelmasa null.",
     "- product_text: agar mijoz aniq mahsulot nomini aytsa (masalan 'ruchka', 'futbolka', 'kalendar') - shu matnni yoz (xato/qisqa yozilgan bo'lsa ham, tushunarli holatda). Aks holda null.",
     "- quantity: agar mijoz miqdor aytsa (masalan '10 ta', '50 dona') - shu sondagi BUTUN SON (integer). Aks holda null.",
-    "- selected_price: agar mijoz avval taklif qilingan narx variantlaridan birini ANIQ XARID QILISH NIYATIDA TANLASA (masalan '30 minglik bo'lsin', 'ikkinchisi', 'shu 55 mingligidan olaman') - shu narxni SON sifatida yoz (masalan 30000). QAT'IY QOIDA: Agar mijoz narxni savol ko'rinishida ishlatsa yoki arzonrog'ini so'rasa (masalan '55 mingdan arzoni bormi?', 'buning 30 mingligi qanaqa bo'ladi?') - BU TANLASH EMAS! Bunday holatda qat'iyan null qaytar.",
+    "- selected_price: agar mijoz avval taklif qilingan narx variantlaridan birini ANIQ XARID QILISH NIYATIDA TANLASA (masalan '30 minglik bo'lsin', 'shu 55 mingligidan olaman') - shu narxni SON sifatida yoz. QAT'IY QOIDA: agar mijoz narxni SAVOL ko'rinishida ishlatsa yoki arzonrog'ini so'rasa (masalan '55 mingdan arzoni bormi?') - bu TANLASH EMAS, null qaytar.",
     "- phone: agar mijoz telefon raqam yozsa - shuni yoz. Aks holda null.",
-    "- deadline: agar mijoz mahsulot qachongacha kerakligini aytsa (masalan 'ertaga', '3 kun ichida') - shuni yoz. Aks holda null.",
-    "- wants_cancel: mijoz suhbatni/buyurtmani bekor qilishni, to'xtatishni xohlasa true.",
-    "- wants_operator: mijoz jonli odam/operator bilan gaplashishni xohlasa, yoki buyurtmasini hozir RASMIYLASHTIRISHGA (yakuniy tasdiqlashga) tayyor bo'lsa true.",
-    "- objection_text: agar mijoz e'tiroz/shubha bildirsa, narx qimmat deb o'ylasa, YOXUD arzonroq variant qidirsa (masalan 'bundan arzoni yo'qmi?', 'qimmat ekan', 'boshqa joydan olaman', 'o'ylab ko'raman') - shu e'tirozni qisqacha yoz (masalan 'narxi qimmatlik qildi'). Aks holda null.",
-    "- off_topic_question: FAQAT agar mijoz ANIQ, TUSHUNARLI va sotuvga aloqasi yo'q haqiqiy savol bersa (masalan 'ish vaqtingiz qachongacha', 'qayerda joylashgansiz') - shu savolni qisqacha yoz. MUHIM: agar xabar tushunarsiz/ma'nosiz bo'lsa, buni off_topic_question deb belgilama - bunday holda buni is_unclear=true qilib belgilash kerak.",
+    "- deadline: agar mijoz mahsulot qachongacha kerakligini aytsa - shuni yoz. Aks holda null.",
+    "- wants_cancel: mijoz suhbatni/buyurtmani bekor qilishni xohlasa true.",
+    "- wants_operator: mijoz jonli odam/operator bilan gaplashishni xohlasa, yoki buyurtmasini hozir RASMIYLASHTIRISHGA tayyor bo'lsa true.",
+    "- objection_type: mijoz e'tiroz/ikkilanish bildirsa, TURINI tanla: 'price' (narx qimmat/arzonrog'i bormi), 'trust' (ishonmaslik, kompaniya/sifat haqida shubha), 'timing' (hozir kerak emas, keyinroq), 'competitor' (boshqa joyda ko'rgan/arzon topgan), 'hesitation' (o'ylab ko'raman, ikkilanish, sababsiz sukut), 'other'. E'tiroz bo'lmasa null.",
+    "- objection_text: agar objection_type berilgan bo'lsa, mijozning aynan nima degani qisqa matn sifatida. Aks holda null.",
+    "- off_topic_question: FAQAT agar mijoz ANIQ, TUSHUNARLI va sotuvga aloqasi yo'q haqiqiy savol bersa (masalan 'ish vaqtingiz qachongacha') - shu savolni qisqacha yoz. Tushunarsiz/ma'nosiz xabarni BUNGA KIRITMA (is_unclear ishlatilsin).",
     "- is_unclear: mijoz xabari tushunarsiz, ma'nosiz so'zlar to'plami, yoki aniq mantiqsiz bo'lsa true.",
     "Hozircha ma'lum holat: ism=" + (state.name || "noma'lum") + ", joriy kategoriya=" + (state.category || "yo'q") + ", joriy mahsulot=" + (state.focusProduct || "yo'q") + ", savatda mahsulot bor=" + (state.hasItems ? "ha" : "yo'q") + ", telefon bor=" + (state.hasPhone ? "ha" : "yo'q") + ".",
     "Bir xabarda bir nechta fakt birga kelishi mumkin - hammasini ajratib ol.",
@@ -128,14 +127,15 @@ async function extractTurn(senderId, history, lang, state, categories) {
         deadline: { type: ["string", "null"] },
         wants_cancel: { type: "boolean" },
         wants_operator: { type: "boolean" },
+        objection_type: { type: ["string", "null"], enum: ["price", "trust", "timing", "competitor", "hesitation", "other", null] },
         objection_text: { type: ["string", "null"] },
         off_topic_question: { type: ["string", "null"] },
         is_unclear: { type: "boolean" },
       },
       required: [
         "language", "script", "customer_name", "likely_gender", "category", "product_text", "quantity",
-        "selected_price", "phone", "deadline", "wants_cancel", "wants_operator", "objection_text",
-        "off_topic_question", "is_unclear",
+        "selected_price", "phone", "deadline", "wants_cancel", "wants_operator",
+        "objection_type", "objection_text", "off_topic_question", "is_unclear",
       ],
       additionalProperties: false,
     },
@@ -144,7 +144,30 @@ async function extractTurn(senderId, history, lang, state, categories) {
   return callTool(senderId, instructions, history, tool);
 }
 
-async function composeReply(senderId, history, lang, situation, addressName, factsBlock, script) {
+// ============================================================================
+// Sotuv taktikasi: e'tiroz turi bo'yicha aniq yo'riqnoma (AI'ga "qanaqa javob ber" deb
+// emas, "qaysi TAKTIKANI ishlat" deb ko'rsatiladi - bu yuzaki javoblarning oldini oladi).
+// ============================================================================
+const OBJECTION_TACTICS = {
+  price: "TAKTIKA - NARX E'TIROZI: 'Nima qoniqtirmadi?' kabi savol BERMA. Buning o'rniga QIYMATGA o'tkaz: sifat, kafolat, o'z vaqtida bajarish, ulgurji miqdorda narx tushishi haqida 1 jumla ayt. Agar holatda arzonroq variant ko'rsatilgan bo'lsa - shuni aniq taklif qil. Agar yo'q bo'lsa - miqdorni oshirsa narx tushishini ayt.",
+  trust: "TAKTIKA - ISHONCH E'TIROZI: Mijozning xavotirini tabiiy qabul qil (himoyalanma, bahslashma). Kompaniyaning ishlash tartibi (oldindan namuna ko'rsatish, bosqichma-bosqich to'lov, aniq muddat) haqida ishonch beruvchi 1-2 jumla ayt. Bosim qilma.",
+  timing: "TAKTIKA - VAQT E'TIROZI ('hozir kerak emas'): Bosim qilma, lekin eshikni ochiq qoldir - masalan keyinroq narxlar o'zgarishi mumkinligini yoki shu kunlarda chegirma borligini (agar haqiqatan bo'lsa) eslatib, kelishilgan vaqtda yana murojaat qilishini so'ra.",
+  competitor: "TAKTIKA - RAQOBATCHI E'TIROZI: Raqobatchini yomonlama va narxini taxmin qilma. O'zingning aniq afzalliklaringizga (sifat nazorati, muddat kafolati, ulgurji shartlar) urg'u ber, va aynan shu mahsulot/miqdor uchun ANIQ narxni qayta tasdiqla.",
+  hesitation: "TAKTIKA - IKKILANISH: Haqiqiy ehtiyojni biluvchi 1 ta ochiq, hurmatli savol ber (masalan byudjet, dizayn yoki miqdor noaniqligi sabab bo'lganini so'ra) - bosim qilmasdan, suhbatni davom ettirish uchun.",
+  other: "Mijozning aynan nima dema xohlaganini tushunib, qisqa, halol va yordam beruvchi tarzda javob ber.",
+};
+
+const BANNED_CLOSINGS_NOTE =
+  "QATTIQ TAQIQ: quyidagi kabi umumiy, mazmunsiz yopilish jumlalarini HECH QACHON ishlatma (yoki ularning ma'nodosh variantlarini): " +
+  "\"Yana qanday yordam bera olaman?\", \"Boshqa savollaringiz bo'lsa murojaat qiling\", \"Savolingiz bo'lsa bemalol yozing\", " +
+  "\"Sizga yordam berishdan mamnunman\", \"Yaxshi kun tilayman\", \"Rahmat, ko'rishguncha\". " +
+  "Buning o'rniga HAR DOIM holatda ko'rsatilgan ANIQ keyingi qadam (masalan miqdorni so'rash, narx variantini taklif qilish, telefon so'rash, " +
+  "ulgurji takliflarni eslatish) bilan tugat - bu CTA (Call-to-Action) konkret va shu mijozning aynan shu vaziyatiga tegishli bo'lishi shart.";
+
+// ============================================================================
+// 2-BOSQICH: composeReply
+// ============================================================================
+async function composeReply(senderId, history, lang, situation, addressName, factsBlock, script, objectionType) {
   const scriptNote =
     lang === "uz"
       ? script === "cyrillic"
@@ -152,44 +175,52 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
         : "Mijoz o'zbek tilida LOTIN alifbosida yozayapti - sen ham lotin alifbosida yoz."
       : "Javobni rus tilida yoz.";
 
-  const guardrail =
-    "QATTIQ QOIDA: Sen \"" + (config.business.shopName || "Gift Master") + "\" do'konining XALQARO DARAJADAGI, TAJRIBALI SOTUV EKSPERTISAN. Mijozga HECH QACHON 'do'konga murojaat qiling', 'menejerga yozing' yoki 'narxni bilish uchun qo'ng'iroq qiling' deb aytma! Narxlarni doim SEN aytasan. O'zingdan narx yoki xususiyat to'qib chiqarma.";
+  const persona =
+    "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'konining KO'P YILLIK TAJRIBALI, XALQARO DARAJADAGI B2B SOTUV EKSPERTISAN. " +
+    "Muloyim, lekin 'suvsiz' (ortiqcha hissiyotsiz, londa, faktlarga asoslangan) va to'g'ridan-to'g'ri gaplashasan. " +
+    "'Tushunaman', 'Juda yaxshi savol', 'Albatta!' kabi cho'ziluvchan kirish so'zlaridan saqlan - to'g'ridan-to'g'ri mazmunga o't.";
 
-  const behaviorRules = 
-    "SOTUV PSIXOLOGIYASI VA STIL (B2B XALQARO STANDARTLAR):\n" +
-    "1. MULOQOT OHANGI: Sen o'ta professional, muloyim lekin qat'iy eksportsan. 'Suvsiz', londa va faktlarga asoslangan tilda gaplashasan. 'Tushunaman', 'Juda yaxshi savol', 'Albatta' kabi his-hayajonli va cho'ziluvchan kirish so'zlarini ishlatma. Mijoz vaqtini qadrla va to'g'ridan-to'g'ri masalaga o't.\n" +
-    "2. UPSELLING VA CROSS-SELLING: Agar mijoz ma'lum mahsulot yoki miqdor haqida so'rasa, faqat quruq narx aytib to'xtama. Fursatdan foydalanib: 'Sizga ko'proq miqdor kerak bo'lsa, maxsus ulgurji chegirmamiz bor' (Upsell) yoki 'Ushbu mahsulot bilan birga ko'pincha ... ham olinadi' (Cross-sell) shaklida londa qilib sotuv hajmini oshirishga urinib ko'r. (Faqat logikaga mos bo'lsa).\n" +
-    "3. E'TIROZLAR BILAN ISHLASH (Muhim!): Mijoz 'Qimmat' desa, 'Nima qoniqtirmadi?' deb SAVOL BERMA! Buning o'rniga qadriyat (Value) haqida gapir: 'Narxlarimiz sifatsiz materiallar bilan raqobatlashmaydi. Bizda uzoq muddatli xizmat, premium sifat va aniq muddat kafolatlangan.' Agar mijoz o'ylab ko'rishini aytsa yoki ochiqchasiga rad etsa ('olmayman'), hurmat bilan haqiqiy ehtiyojni aniqlovchi yumshoq savol ber ('Tushunarli. Sir bo'lmasa, qaroringizga byudjet sabab bo'ldimi yoki dizaynmi?').\n" +
-    "4. TAQIQLANGAN HARAKATLAR VA SO'ZLAR: Mijoz e'tiroz bildirsa yoxud gapirmay qo'ysa, ASLO 'Salomat bo'ling', 'Xayr', 'Bemalol murojaat qiling' deb suhbatni yopma. Dialog doim mijozni jalb qiluvchi biror Call-to-Action (Harakatga chorlov) bilan tugashi shart! 'Yana qanday yordam bera olaman?' degan zerikarli shablonni ISHLATMA.";
+  const guardrail =
+    "QATTIQ QOIDA: Mijozga HECH QACHON \"do'konga murojaat qiling\", \"menejerga yozing\" yoki \"narxni bilish uchun qo'ng'iroq qiling\" deb aytma - " +
+    "narxlarni HAR DOIM SEN o'zing aytasan (tizim bergan tayyor raqamlar orqali). O'zingdan narx, xususiyat yoki va'dani to'qib chiqarma.";
+
+  const upsell =
+    "IMKONIYAT BO'LSA (faqat tabiiy mos kelganda, har safar emas): mijoz ma'lum mahsulot/miqdor so'rasa, " +
+    "quruq narx aytib to'xtama - agar holatda \"qo'shimcha taklif\" ko'rsatilgan bo'lsa, shuni tabiiy ravishda (bosim qilmasdan) taklif qil " +
+    "(masalan ulgurji chegirma yoki birga olinadigan mahsulot).";
+
+  const objectionGuidance = objectionType
+    ? "MIJOZ E'TIROZ BILDIRDI (turi: " + objectionType + "). " + (OBJECTION_TACTICS[objectionType] || OBJECTION_TACTICS.other)
+    : "";
+
+  const baseRules = [persona, guardrail, upsell, objectionGuidance, BANNED_CLOSINGS_NOTE].filter(Boolean).join("\n");
 
   const instructions = factsBlock
     ? [
-        "Sen mijozlarga ortiqcha 'suv'siz javob beradigan yuqori darajadagi B2B sotuv ekspertisan.",
-        guardrail,
-        behaviorRules,
-        "Quyida JS tizimi tomonidan tayyorlangan holat tasviri:",
+        baseRules,
+        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan:",
         "--- HOLAT ---",
         situation,
         "--- HOLAT TUGADI ---",
-        "MUHIM: Mijozga narx/raqamlar ko'rsatiladigan blok BOR. Sen FAQAT quyidagi ikkita qisqa matnni yozasan:",
-        "  1) intro - narx blokidan oldin keluvchi 1-2 so'zli professional kirish (masalan, 'Marhamat, narxlar:'). Raqam yozma.",
-        "  2) closing - narx blokidan keyin keluvchi Upsell/Cross-sell taklifi yoxud aniq savol (masalan, 'Kattaroq hajmda narxlar yana tushadi. Qaysi o'lcham ma'qul?'). Agar vaziyat talab qilmasa, bo'sh qoldir.",
-        addressName ? ("Mijoz murojaati: \"" + addressName + "\"") : "",
+        "MUHIM: Mijozga ANIQ NARX/RAQAMLAR ko'rsatiladigan alohida blok BOR - bu blokni SEN YOZMAYSAN, tizim avtomat qo'yadi. Sening vazifang FAQAT ikkita qisqa matn yozish:",
+        "  1) intro - narx blokidan OLDIN keladigan 1 jumlali professional kirish. RAQAM YOZMA.",
+        "  2) closing - narx blokidan KEYIN keladigan ANIQ keyingi qadam (savol/taklif). RAQAM YOZMA. Yuqoridagi taqiqlangan jumlalardan foydalanma.",
+        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum.",
         scriptNote,
-        "Faqat compose_reply_with_facts orqali javob ber."
-      ].filter(Boolean).join("\n")
+        "Faqat compose_reply_with_facts tool orqali javob ber.",
+      ].join("\n")
     : [
-        "Sen mijozlarga ortiqcha 'suv'siz javob beradigan yuqori darajadagi B2B sotuv ekspertisan.",
-        guardrail,
-        behaviorRules,
-        "Quyida JS tizimi tomonidan tayyorlangan holat tasviri - shu asosida qisqa, londa va sotuvga yo'naltirilgan javob yoz:",
+        baseRules,
+        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - shu asosida javob yoz (faktlarni o'zgartirma, to'qima):",
         "--- HOLAT ---",
         situation,
         "--- HOLAT TUGADI ---",
-        addressName ? ("Mijoz murojaati: \"" + addressName + "\"") : "",
+        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
         scriptNote,
-        "Faqat compose_reply orqali javob ber."
-      ].filter(Boolean).join("\n");
+        "Javob ANIQ keyingi qadam bilan tugashi shart (yuqoridagi taqiqlangan jumlalardan foydalanma).",
+        "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma.",
+        "Faqat compose_reply tool orqali javob ber.",
+      ].join("\n");
 
   const tool = factsBlock
     ? {
@@ -200,8 +231,8 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
         parameters: {
           type: "object",
           properties: {
-            intro: { type: "string", description: "Narx blokidan OLDIN keladigan qisqa kirish jumlasi. Raqam yozma." },
-            closing: { type: "string", description: "Narx blokidan KEYIN keladigan qisqa savol, upsell taklif yoxud yopilish jumlasi. Raqam yozma." },
+            intro: { type: "string", description: "Narx blokidan OLDIN keladigan qisqa professional kirish. Raqam yozma." },
+            closing: { type: "string", description: "Narx blokidan KEYIN keladigan ANIQ keyingi qadam (savol/taklif). Umumiy/zerikarli jumla emas." },
           },
           required: ["intro", "closing"],
           additionalProperties: false,
@@ -210,12 +241,12 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
     : {
         type: "function",
         name: "compose_reply",
-        description: "Berilgan holat tasvirini tabiiy, suhbatdosh javobga aylantiradi.",
+        description: "Berilgan holat tasvirini professional sotuvchi ohangida, ANIQ keyingi qadam bilan tugaydigan javobga aylantiradi.",
         strict: true,
         parameters: {
           type: "object",
           properties: {
-            reply: { type: "string", description: "Mijozga yuboriladigan yakuniy javob matni" },
+            reply: { type: "string", description: "Mijozga yuboriladigan yakuniy javob matni - ANIQ keyingi qadam bilan tugashi shart" },
           },
           required: ["reply"],
           additionalProperties: false,
