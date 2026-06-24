@@ -1710,7 +1710,7 @@
   {
     "code": "102-22",
     "name": "Ejednevnik",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/102-22.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/102-22.jpg",
     "options": [
       {
         "label": "UF-pechat",
@@ -1752,7 +1752,7 @@
   {
     "code": "102-23",
     "name": "Ejednevnik",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/102-23.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/102-23.jpg",
     "options": [
       {
         "label": "UF-pechat",
@@ -1794,7 +1794,7 @@
   {
     "code": "102-25",
     "name": "Ejednevnik (organayzer)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/102-25.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/102-25.jpg",
     "options": [
       {
         "label": "UF-pechat",
@@ -1836,7 +1836,7 @@
   {
     "code": "102-01",
     "name": "Ejednevnik Spectrum",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/102-01.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/102-01.jpg",
     "options": [
       {
         "label": "UF-pechat",
@@ -1878,7 +1878,7 @@
   {
     "code": "102-04",
     "name": "Ejednevnik",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/102-04.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/102-04.jpg",
     "options": [
       {
         "label": "UF-pechat",
@@ -1944,7 +1944,7 @@
   {
     "code": "104-03",
     "name": "Devor soati PREMIUM",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/104-03.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/104-03.jpg",
     "options": [
       {
         "label": "Pechat",
@@ -1994,7 +1994,7 @@
   {
     "code": "104-05",
     "name": "Devor soati - Kvadrat 27sm",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/104-05.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/104-05.jpg",
     "tiers": [
       {
         "minQty": 50,
@@ -2018,7 +2018,7 @@
   {
     "code": "103-01",
     "name": "Termos (LED harorat)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/103-01.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/103-01.jpg",
     "options": [
       {
         "label": "Lazer gravirovka",
@@ -2060,7 +2060,7 @@
   {
     "code": "103-02",
     "name": "Termokrujka",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/103-02.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/103-02.jpg",
     "options": [
       {
         "label": "Lazer gravirovka",
@@ -2102,7 +2102,7 @@
   {
     "code": "103-03",
     "name": "Termos (shisha)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/103-03.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/103-03.jpg",
     "tiers": [
       {
         "minQty": 50,
@@ -2122,7 +2122,7 @@
   {
     "code": "103-05",
     "name": "Termos (metall, uzun)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/103-05.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/103-05.jpg",
     "options": [
       {
         "label": "Lazer gravirovka",
@@ -2164,7 +2164,7 @@
   {
     "code": "103-07",
     "name": "Termos (sport, dastali)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/103-07.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/103-07.jpg",
     "options": [
       {
         "label": "Lazer gravirovka",
@@ -2206,7 +2206,7 @@
   {
     "code": "103-23",
     "name": "Termos (yog'och korinish)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/103-23.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/103-23.jpg",
     "tiers": [
       {
         "minQty": 10,
@@ -2226,7 +2226,7 @@
   {
     "code": "105-06",
     "name": "Stakan",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/105-06.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/105-06.jpg",
     "tiers": [
       {
         "minQty": 24,
@@ -2246,7 +2246,7 @@
   {
     "code": "105-07",
     "name": "Chashka va tarelka",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/105-07.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/105-07.jpg",
     "tiers": [
       {
         "minQty": 24,
@@ -2266,7 +2266,7 @@
   {
     "code": "105-08",
     "name": "Krujka Sublimation (matli)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/105-08.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/105-08.jpg",
     "tiers": [
       {
         "minQty": 50,
@@ -2286,7 +2286,7 @@
   {
     "code": "105-01",
     "name": "Krujka Sublimation (yaltiroq)",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/105-01.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/105-01.jpg",
     "tiers": [
       {
         "minQty": 50,
@@ -2306,7 +2306,7 @@
   {
     "code": "105-02",
     "name": "Krujka Soft Touch",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/105-02.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/105-02.jpg",
     "tiers": [
       {
         "minQty": 50,
@@ -2326,7 +2326,7 @@
   {
     "code": "106-06",
     "name": "Fartuk",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/106-06.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/106-06.jpg",
     "tiers": [
       {
         "minQty": 50,
@@ -2346,7 +2346,7 @@
   {
     "code": "106-07",
     "name": "Kepka",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/106-07.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/106-07.jpg",
     "options": [
       {
         "label": "DTF",
@@ -2396,7 +2396,7 @@
   {
     "code": "106-01",
     "name": "Futbolka XB",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/106-01.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/106-01.jpg",
     "options": [
       {
         "label": "Suprem 130gr",
@@ -2446,7 +2446,7 @@
   {
     "code": "106-02",
     "name": "Polo",
-    "image": "https://raw.githubusercontent.com/giftmasterkassa-debug/chatbot/main/src/images/106-02.jpg",
+    "image": "https://cdn.jsdelivr.net/gh/giftmasterkassa-debug/chatbot@main/src/images/106-02.jpg",
     "options": [
       {
         "label": "Pike 190gr",
