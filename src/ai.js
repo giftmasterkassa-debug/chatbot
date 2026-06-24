@@ -93,16 +93,16 @@ async function extractTurn(senderId, history, lang, state, categories) {
     "- customer_name: agar mijoz ismini aytgan bo'lsa (oldin aytilmagan bo'lsa).",
     "- likely_gender: agar ism aytilgan bo'lsa, shu ism odatda erkak ('male') yoki ayolga ('female') tegishli ekanini taxmin qil; aniq bo'lmasa null.",
     "- category: agar mijoz quyidagi kategoriyalardan biriga ishora qilsa (to'g'ridan-to'g'ri yoki tabiiy so'z bilan) - ANIQ shu ro'yxatdagi nomni yoz: " + categories.join(", ") + ". Mos kelmasa null.",
-    "- product_text: agar mijoz aniq mahsulot nomini aytsa (masalan 'ruchka', 'futbolka') - shu matnni yoz (xato/qisqa yozilgan bo'lsa ham, tushunarli holatda). Aks holda null.",
+    "- product_text: agar mijoz aniq mahsulot nomini aytsa (masalan 'ruchka', 'futbolka', 'kalendar') - shu matnni yoz (xato/qisqa yozilgan bo'lsa ham, tushunarli holatda). Aks holda null.",
     "- quantity: agar mijoz miqdor aytsa (masalan '10 ta', '50 dona') - shu sondagi BUTUN SON (integer). Aks holda null.",
     "- selected_price: agar mijoz avval taklif qilingan narx variantlaridan birini ANIQ XARID QILISH NIYATIDA TANLASA (masalan '30 minglik bo'lsin', 'ikkinchisi', 'shu 55 mingligidan olaman') - shu narxni SON sifatida yoz (masalan 30000). QAT'IY QOIDA: Agar mijoz narxni savol ko'rinishida ishlatsa yoki arzonrog'ini so'rasa (masalan '55 mingdan arzoni bormi?', 'buning 30 mingligi qanaqa bo'ladi?') - BU TANLASH EMAS! Bunday holatda qat'iyan null qaytar.",
     "- phone: agar mijoz telefon raqam yozsa - shuni yoz. Aks holda null.",
     "- deadline: agar mijoz mahsulot qachongacha kerakligini aytsa (masalan 'ertaga', '3 kun ichida') - shuni yoz. Aks holda null.",
     "- wants_cancel: mijoz suhbatni/buyurtmani bekor qilishni, to'xtatishni xohlasa true.",
     "- wants_operator: mijoz jonli odam/operator bilan gaplashishni xohlasa, yoki buyurtmasini hozir RASMIYLASHTIRISHGA (yakuniy tasdiqlashga) tayyor bo'lsa true.",
-    "- objection_text: agar mijoz e'tiroz/shubha bildirsa, narx qimmat deb o'ylasa, YOXUD arzonroq variant qidirsa (masalan 'bundan arzoni yo'qmi?', 'qimmat ekan', 'boshqa joydan olaman') - shu e'tirozni qisqacha yoz (masalan 'narxi qimmatlik qildi'). Aks holda null.",
-    "- off_topic_question: FAQAT agar mijoz ANIQ, TUSHUNARLI va sotuvga aloqasi yo'q haqiqiy savol bersa (masalan 'ish vaqtingiz qachongacha', 'qayerda joylashgansiz') - shu savolni qisqacha yoz. MUHIM: agar xabar tushunarsiz/ma'nosiz bo'lsa, buni off_topic_question deb belgilama (hatto unda tanish so'z - masalan 'kiber', 'internet' kabi - uchragan taqdirda ham) - bunday holda buni is_unclear=true qilib belgilash kerak, off_topic_question esa null qoladi.",
-    "- is_unclear: mijoz xabari tushunarsiz, ma'nosiz so'zlar to'plami, yoki aniq mantiqsiz bo'lsa true. Bunday holda boshqa hech qaysi maydonni (off_topic_question ham) to'ldirma - faqat is_unclear=true qil.",
+    "- objection_text: agar mijoz e'tiroz/shubha bildirsa, narx qimmat deb o'ylasa, YOXUD arzonroq variant qidirsa (masalan 'bundan arzoni yo'qmi?', 'qimmat ekan', 'boshqa joydan olaman', 'o'ylab ko'raman') - shu e'tirozni qisqacha yoz (masalan 'narxi qimmatlik qildi'). Aks holda null.",
+    "- off_topic_question: FAQAT agar mijoz ANIQ, TUSHUNARLI va sotuvga aloqasi yo'q haqiqiy savol bersa (masalan 'ish vaqtingiz qachongacha', 'qayerda joylashgansiz') - shu savolni qisqacha yoz. MUHIM: agar xabar tushunarsiz/ma'nosiz bo'lsa, buni off_topic_question deb belgilama - bunday holda buni is_unclear=true qilib belgilash kerak.",
+    "- is_unclear: mijoz xabari tushunarsiz, ma'nosiz so'zlar to'plami, yoki aniq mantiqsiz bo'lsa true.",
     "Hozircha ma'lum holat: ism=" + (state.name || "noma'lum") + ", joriy kategoriya=" + (state.category || "yo'q") + ", joriy mahsulot=" + (state.focusProduct || "yo'q") + ", savatda mahsulot bor=" + (state.hasItems ? "ha" : "yo'q") + ", telefon bor=" + (state.hasPhone ? "ha" : "yo'q") + ".",
     "Bir xabarda bir nechta fakt birga kelishi mumkin - hammasini ajratib ol.",
     "Faqat extract_turn tool orqali javob ber, undan tashqari hech qanday matn yozma.",
@@ -153,17 +153,18 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
       : "Javobni rus tilida yoz.";
 
   const guardrail =
-    "QATTIQ QOIDA: Sen \"" + (config.business.shopName || "Gift Master") + "\" do'konining ASOSIY SOTUV EKSPERTISAN. Mijozga HECH QACHON 'do'konga murojaat qiling', 'menejerga yozing', 'narxni bilish uchun qo'ng'iroq qiling' deb aytma! Mijoz hozir aynan do'kon bilan (ya'ni sen bilan) gaplashyapti. Narxlarni doim SEN aytasan. O'zingdan narx to'qib chiqarma, agar narx kerak bo'lsa tizim senga faktlarni yetkazishini kut. Ungacha faqat kerakli parametrni (masalan, miqdorini) so'rab tur.";
+    "QATTIQ QOIDA: Sen \"" + (config.business.shopName || "Gift Master") + "\" do'konining XALQARO DARAJADAGI, TAJRIBALI SOTUV EKSPERTISAN. Mijozga HECH QACHON 'do'konga murojaat qiling', 'menejerga yozing' yoki 'narxni bilish uchun qo'ng'iroq qiling' deb aytma! Narxlarni doim SEN aytasan. O'zingdan narx yoki xususiyat to'qib chiqarma.";
 
   const behaviorRules = 
-    "SOTUV PSIXOLOGIYASI VA STIL: Sen B2B sohasida ishlovchi haqiqiy ekspert-sotuvchisan. Gaplaring 'suvsiz', londa, qisqa va aniq bo'lishi shart. 'Tushunaman', 'Albatta' kabi hissiyotli va cho'ziluvchan kirish so'zlaridan umuman foydalanma.\n" +
-    "1. RAD ETISH VA E'TIROZ BILAN ISHLASH: Agar mijoz 'olmayman', 'boshqa joydan olaman', 'qimmat' desa, darhol xayrlashib suhbatni yopma! Buning o'rniga mijoz qarorini qabul qilgan holda, londa qilib SABABINI so'ra (Masalan: 'Tushunarli. Sir bo'lmasa, nima qoniqtirmadi? Narx to'g'ri kelmadimi yoki sifatmi?'). Maqsad - qayta aloqa (feedback) olish.\n" +
-    "2. NARX SO'RALGANDA: Agar mijoz miqdor yoki turini aytsa-yu, tizim hali senga narx faktini bermagan bo'lsa, 'hozir hisoblab beraman' deb yoz yoki kerakli detalni so'ra. Hech qachon mijozni boshqa joyga yo'naltirma.\n" +
-    "3. TAQIQLANGAN SO'ZLAR: 'Do'kon bilan bog'laning', 'Yana qanday yordam bera olaman?' kabi sun'iy shablonlarni QAT'IYAN ISHLATMA.";
+    "SOTUV PSIXOLOGIYASI VA STIL (B2B XALQARO STANDARTLAR):\n" +
+    "1. MULOQOT OHANGI: Sen o'ta professional, muloyim lekin qat'iy eksportsan. 'Suvsiz', londa va faktlarga asoslangan tilda gaplashasan. 'Tushunaman', 'Juda yaxshi savol', 'Albatta' kabi his-hayajonli va cho'ziluvchan kirish so'zlarini ishlatma. Mijoz vaqtini qadrla va to'g'ridan-to'g'ri masalaga o't.\n" +
+    "2. UPSELLING VA CROSS-SELLING: Agar mijoz ma'lum mahsulot yoki miqdor haqida so'rasa, faqat quruq narx aytib to'xtama. Fursatdan foydalanib: 'Sizga ko'proq miqdor kerak bo'lsa, maxsus ulgurji chegirmamiz bor' (Upsell) yoki 'Ushbu mahsulot bilan birga ko'pincha ... ham olinadi' (Cross-sell) shaklida londa qilib sotuv hajmini oshirishga urinib ko'r. (Faqat logikaga mos bo'lsa).\n" +
+    "3. E'TIROZLAR BILAN ISHLASH (Muhim!): Mijoz 'Qimmat' desa, 'Nima qoniqtirmadi?' deb SAVOL BERMA! Buning o'rniga qadriyat (Value) haqida gapir: 'Narxlarimiz sifatsiz materiallar bilan raqobatlashmaydi. Bizda uzoq muddatli xizmat, premium sifat va aniq muddat kafolatlangan.' Agar mijoz o'ylab ko'rishini aytsa yoki ochiqchasiga rad etsa ('olmayman'), hurmat bilan haqiqiy ehtiyojni aniqlovchi yumshoq savol ber ('Tushunarli. Sir bo'lmasa, qaroringizga byudjet sabab bo'ldimi yoki dizaynmi?').\n" +
+    "4. TAQIQLANGAN HARAKATLAR VA SO'ZLAR: Mijoz e'tiroz bildirsa yoxud gapirmay qo'ysa, ASLO 'Salomat bo'ling', 'Xayr', 'Bemalol murojaat qiling' deb suhbatni yopma. Dialog doim mijozni jalb qiluvchi biror Call-to-Action (Harakatga chorlov) bilan tugashi shart! 'Yana qanday yordam bera olaman?' degan zerikarli shablonni ISHLATMA.";
 
   const instructions = factsBlock
     ? [
-        "Sen mijozlarga ortiqcha 'suv'siz javob beradigan professional sotuv ekspertisan.",
+        "Sen mijozlarga ortiqcha 'suv'siz javob beradigan yuqori darajadagi B2B sotuv ekspertisan.",
         guardrail,
         behaviorRules,
         "Quyida JS tizimi tomonidan tayyorlangan holat tasviri:",
@@ -172,16 +173,16 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
         "--- HOLAT TUGADI ---",
         "MUHIM: Mijozga narx/raqamlar ko'rsatiladigan blok BOR. Sen FAQAT quyidagi ikkita qisqa matnni yozasan:",
         "  1) intro - narx blokidan oldin keluvchi 1-2 so'zli professional kirish (masalan, 'Marhamat, narxlar:'). Raqam yozma.",
-        "  2) closing - narx blokidan keyin keluvchi qisqa savol (masalan, 'Ma'qulmi?' yoki 'Qaysi birini rasmiylashtiramiz?'). Agar vaziyat savol talab qilmasa, bo'sh qoldir.",
+        "  2) closing - narx blokidan keyin keluvchi Upsell/Cross-sell taklifi yoxud aniq savol (masalan, 'Kattaroq hajmda narxlar yana tushadi. Qaysi o'lcham ma'qul?'). Agar vaziyat talab qilmasa, bo'sh qoldir.",
         addressName ? ("Mijoz murojaati: \"" + addressName + "\"") : "",
         scriptNote,
         "Faqat compose_reply_with_facts orqali javob ber."
       ].filter(Boolean).join("\n")
     : [
-        "Sen mijozlarga ortiqcha 'suv'siz javob beradigan professional sotuv ekspertisan.",
+        "Sen mijozlarga ortiqcha 'suv'siz javob beradigan yuqori darajadagi B2B sotuv ekspertisan.",
         guardrail,
         behaviorRules,
-        "Quyida JS tizimi tomonidan tayyorlangan holat tasviri - shu asosida qisqa, londa javob yoz:",
+        "Quyida JS tizimi tomonidan tayyorlangan holat tasviri - shu asosida qisqa, londa va sotuvga yo'naltirilgan javob yoz:",
         "--- HOLAT ---",
         situation,
         "--- HOLAT TUGADI ---",
@@ -200,7 +201,7 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
           type: "object",
           properties: {
             intro: { type: "string", description: "Narx blokidan OLDIN keladigan qisqa kirish jumlasi. Raqam yozma." },
-            closing: { type: "string", description: "Narx blokidan KEYIN keladigan qisqa savol/yopilish jumlasi. Raqam yozma." },
+            closing: { type: "string", description: "Narx blokidan KEYIN keladigan qisqa savol, upsell taklif yoxud yopilish jumlasi. Raqam yozma." },
           },
           required: ["intro", "closing"],
           additionalProperties: false,
