@@ -218,6 +218,27 @@ function orderSummaryText(order) {
   return lines.join("\n");
 }
 
+// Tabiiy mos keladigan kategoriyalar - faqat buyurtma yakunlanganda BIR MARTA,
+// tabiiy mos kelsa taklif qilish uchun (har safar emas - AI o'zi hal qiladi).
+const RELATED_CATEGORIES = {
+  "Ruchka va qalam": ["Kundaliklar (ejednevnik)", "Korporativ naborlar"],
+  "Kundaliklar (ejednevnik)": ["Ruchka va qalam", "Kalendarlar"],
+  "Krujka va idishlar": ["Termoslar"],
+  "Termoslar": ["Krujka va idishlar"],
+  "Kiyim va kepkalar": ["Znachoklar", "Brelоклар"],
+  "Devor soatlari": ["Plaketkalar"],
+  "Ryukzaklar": ["Fleshkalar", "Hamyon, portmone va kartxolderlar"],
+  "Vizitnitsalar": ["Hamyon, portmone va kartxolderlar"],
+  "Bayroqlar": ["Plaketkalar"],
+  "Soyabonlar": ["Korporativ naborlar"],
+};
+
+function upsellHint(category) {
+  const related = RELATED_CATEGORIES[category];
+  if (!related || !related.length) return null;
+  return related[0];
+}
+
 function priceOptionsBlock(options, qty) {
   return options
     .map(function (o) {
@@ -245,6 +266,13 @@ function buildSituation(ctx, lang) {
   if (ctx.orderFinalized) {
     factsBlock = orderSummaryText(ctx.orderFinalized);
     lines.push("BUYURTMA HOZIRGINA YAKUNLANDI. Mijozga rahmat ayt, buyurtma qabul qilingani va operatorga yuborilganini ayt, tez orada bog'lanishini ayt. Buyurtma tafsilotlari alohida (sendan tashqari) ko'rsatiladi.");
+    const lastCategory = ctx.orderFinalized.items.length ? s.data.lastFinalizedCategory : null;
+    if (lastCategory) {
+      const hint = upsellHint(lastCategory);
+      if (hint) {
+        lines.push("QO'SHIMCHA TAKLIF (faqat tabiiy mos kelsa ishlat, majburiy emas): ko'pchilik mijozlar \"" + lastCategory + "\" bilan birga \"" + hint + "\" turkumidan ham buyurtma qiladi - shuni qisqa, bosimsiz tarzda eslatib o'tishing mumkin.");
+      }
+    }
     return { situation: lines.join("\n"), factsBlock: factsBlock };
   }
 
@@ -257,27 +285,31 @@ function buildSituation(ctx, lang) {
     return { situation: lines.join("\n"), factsBlock: null };
   }
 
-  if (e.objection_text) {
-    lines.push("Mijoz e'tiroz/shubha bildirdi: \"" + e.objection_text + "\".");
+  if (e.objection_type) {
+    s.data.objectionCount = (s.data.objectionCount || 0) + 1;
+    lines.push("Mijoz e'tiroz bildirdi (turi: " + e.objection_type + "): \"" + (e.objection_text || "") + "\".");
+    if (s.data.objectionCount >= 2) {
+      lines.push("DIQQAT: bu mijozning shu mavzuda KETMA-KET 2-marta e'tirozi. Endi bir xil gapni takrorlama - buning o'rniga aniq, amaliy yechim taklif qil (masalan miqdorni moslashtirish, yoki operator bilan maxsus shartlarni kelishish imkoni borligini ayt).");
+    }
     if (s.data.focusVariants && s.data.focusVariants.length) {
       const cheapestQty = s.data.pendingQty || Math.max.apply(null, s.data.focusVariants.map(function (v) { return minQtyOfTiers(getTiers(v)); }));
       const opts = priceOptionsForQuantity(s.data.focusVariants, cheapestQty).filter(function (o) { return o.price; });
-      if (opts.length) {
+      if (opts.length && e.objection_type === "price") {
         const cheapest = opts.reduce(function (a, b) { return a.price.unitPrice <= b.price.unitPrice ? a : b; });
         lines.push(
-          "Mijozning e'tirozini tushunganingni bildir, keyin eng arzon mavjud variantni taklif qil: " +
+          "Taklif qilish uchun ANIQ arzonroq variant mavjud: " +
           cheapest.name + " (" + cheapest.code + ")" + (cheapest.optionLabel ? " - " + cheapest.optionLabel : "") +
-          " - " + formatMoney(cheapest.price.unitPrice) + " so'm/dona (" + cheapestQty + " dona uchun). " +
-          "Bosimsiz, tushunuvchan ohangda yoz - agar bu ham mos kelmasa, miqdorni oshirish narxni tushirishini eslatishing mumkin."
+          " - " + formatMoney(cheapest.price.unitPrice) + " so'm/dona (" + cheapestQty + " dona uchun). Shuni taklif qil."
         );
       } else {
-        lines.push("Mahsulot sifati/qiymati haqida ishonchli, bosimsiz tarzda qisqa tushuntir, va kerak bo'lsa operator bilan gaplashish mumkinligini ayt.");
+        lines.push("Mahsulot: " + variantsListText(s.data.focusVariants) + ".");
       }
     } else {
-      lines.push("Mahsulot haqida aniq gap bo'lmagani uchun, umumiy tarzda tushunuvchan javob ber va qaysi mahsulot/narx haqida ekanini so'ra.");
+      lines.push("Mahsulot haqida aniq gap hali bo'lmagani uchun, qaysi mahsulot/narx haqida ekanini ham so'ra.");
     }
-    return { situation: lines.join("\n"), factsBlock: null };
+    return { situation: lines.join("\n"), factsBlock: null, objectionType: e.objection_type };
   }
+  if (!e.objection_type) s.data.objectionCount = 0;
 
   if (e.is_unclear && !e.off_topic_question) {
     lines.push("Mijoz xabari tushunarsiz edi. Muloyimlik bilan, nima kerak ekanini qayta so'ra.");
@@ -498,6 +530,7 @@ async function processMessage(senderId, text, lang) {
       });
       const label = selectedItem.name + " (" + selectedItem.code + ")" + (selectedItem.optionLabel ? " - " + selectedItem.optionLabel : "");
       session.data.items.push({ product: label, quantity: qtyUsed + " dona", price: selectedItem.price });
+      session.data.lastFinalizedCategory = session.data.category;
       session.data.focusVariants = null;
       session.data.focusName = null;
       session.data.pendingQty = null;
@@ -537,7 +570,7 @@ async function processMessage(senderId, text, lang) {
   );
 
   const addressName = session.data.name ? session.data.name + genderSuffix(session.data.gender, lang) : null;
-  let reply = await ai.composeReply(senderId, session.history, lang, situation.situation, addressName, situation.factsBlock, session.data.script);
+  let reply = await ai.composeReply(senderId, session.history, lang, situation.situation, addressName, situation.factsBlock, session.data.script, situation.objectionType);
 
   // ai.composeReply narx faktini (agar bo'lsa) o'zi to'g'ri joyga sendvich qilib qo'shadi -
   // AI narx yoziladigan joyga UMUMAN tegmaydi (alohida intro/closing maydonlari orqali).
