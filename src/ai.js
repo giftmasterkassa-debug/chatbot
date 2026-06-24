@@ -138,17 +138,19 @@ async function extractTurn(senderId, history, lang, state, categories) {
   return callTool(senderId, instructions, history, tool);
 }
 
-async function composeReply(senderId, history, lang, situation, addressName) {
+async function composeReply(senderId, history, lang, situation, addressName, factsBlock) {
   const instructions = [
     "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
-    "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - bu yerdagi RAQAM va FAKTLARNI o'zgartirma, to'qima, faqat tabiiy jumla bilan birlashtirib mijozga yetkazib ber:",
+    "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - ko'rsatmalarga rioya qil:",
     "--- HOLAT ---",
     situation,
     "--- HOLAT TUGADI ---",
+    factsBlock
+      ? "MUHIM: holatda aytilgan joyga ANIQ BIR MARTA, o'zgartirmasdan \"[[FAKTLAR]]\" so'zini (ikki kvadrat qavs bilan, aynan shu yozilishda) qo'y - bu joyga keyin tizim aniq raqamlarni avtomat qo'shadi. SEN O'ZING HECH QANDAY NARX/RAQAM YOZMA - faqat [[FAKTLAR]] dan oldin qisqa kirish jumlasi va undan keyin (kerak bo'lsa) qisqa savol yoz."
+      : "Bu safar qo'shiladigan tayyor raqamli blok yo'q - oddiy tabiiy javob yoz.",
     addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, lekin tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
     "Javobni " + langName(lang) + " tilida, qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
-    "Agar holatda \"mavzudan tashqari savolga javob\" bo'lsa - avval shu savolga qisqa javob ber, so'ng muloyimlik bilan asosiy mavzuga qaytar.",
-    "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma - faqat berilgan holatdagi faktlardan foydalan.",
+    "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma.",
     "Faqat compose_reply tool orqali javob ber, undan tashqari hech qanday matn yozma.",
   ].join("\n");
 
