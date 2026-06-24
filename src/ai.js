@@ -151,6 +151,13 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
         ? "Mijoz o'zbek tilida KIRILL alifbosida yozayapti - sen ham albatta KIRILL alifbosida yoz (lotin emas)."
         : "Mijoz o'zbek tilida LOTIN alifbosida yozayapti - sen ham lotin alifbosida yoz."
       : "Javobni rus tilida yoz.";
+
+  const guardrail =
+    "QATTIQ QOIDA: Sen FAQAT \"" + (config.business.shopName || "Gift Master") + "\" do'koni va uning mahsulotlari haqida gaplashasan. " +
+    "Agar mijoz butunlay aloqasiz, tushunarsiz yoki boshqa sohaga oid (texnik, ilmiy, umumiy bilim va h.k.) narsa so'rasa - " +
+    "O'ZINGNING UMUMIY BILIMINGDAN FOYDALANIB JAVOB BERMA. Faqat: mavzuga aloqasi yo'qligini muloyimlik bilan ayt va sotuvga qaytar. " +
+    "Sen hech qachon do'kon mavzusidan tashqari (masalan texnologiya, sog'liq, umumiy maslahat) ekspert sifatida javob bermaysan.";
+
   const behaviorRules = 
     "SOTUV PSIXOLOGIYASI VA E'TIROZLAR: Agar mijoz e'tiroz bildirsa (masalan 'qimmat', 'boshqa joyda arzon'), darhol himoyalanma yoki uzr so'rama. Mahsulot/xizmat sifatiga, korporativ yondashuvga urg'u berib, professional qisqa argument keltir.\n" +
     "TAQIQLANGAN SO'ZLAR: Suhbat yakuniy bosqichga yetmagunicha (mijoz aniq xaridni rad etmagunicha yoki to'liq tugatmagunicha) HECH QACHON 'Yana qanday yordam bera olaman?', 'Boshqa savollaringiz bormi?' kabi standart shablonlarni ishlatma. Faqat ayni paytdagi mavzu bo'yicha keyingi mantiqiy qadamga yetakla.";
@@ -159,14 +166,14 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
     ? [
         "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
         guardrail,
-        behaviorRules, // Kiritildi
+        behaviorRules,
         "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan:",
         "--- HOLAT ---",
         situation,
         "--- HOLAT TUGADI ---",
         "MUHIM QOIDA: Mijozga ANIQ NARX/RAQAMLAR ko'rsatiladigan alohida blok BOR - bu blokni SEN YOZMAYSAN, tizim avtomat qo'yadi. Sening vazifang FAQAT ikkita qisqa matn yozish:",
         "  1) intro - shu narx blokidan OLDIN aytiladigan 1 jumlali kirish (masalan \"Albatta, mana narxlarimiz:\"). Bu yerda HECH QANDAY RAQAM/NARX YOZMA - chunki ular sendan KEYIN avtomat qo'shiladi, sen ularni hali bilmaysan deb hisobla.",
-        "  2) closing - narx blokidan KEYIN aytiladigan qisqa savol/yopilish jumlasi (masalan \"Qaysi biri sizga mos keladi?\"). Bu yerda ham raqam yozma va UUMUMIY yordam taklif qiluvchi so'zlarni ishlatma.",
+        "  2) closing - narx blokidan KEYIN aytiladigan qisqa savol/yopilish jumlasi (masalan \"Qaysi biri sizga mos keladi?\"). Bu yerda ham raqam yozma va UMUMIY yordam taklif qiluvchi so'zlarni ishlatma.",
         addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum.",
         scriptNote,
         "Qisqa va samimiy ohangda yoz.",
@@ -175,43 +182,7 @@ async function composeReply(senderId, history, lang, situation, addressName, fac
     : [
         "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
         guardrail,
-        behaviorRules, // Kiritildi
-        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - shu asosida tabiiy javob yoz (faktlarni o'zgartirma, to'qima):",
-        "--- HOLAT ---",
-        situation,
-        "--- HOLAT TUGADI ---",
-        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum - hali murojaat shaklini ishlatma.",
-        scriptNote,
-        "Qisqa va samimiy (lekin professional) ohangda yoz. Ortiqcha emodzi ishlatma (kerak bo'lsa 1 tadan oshmasin).",
-        "Hech qachon mavjud bo'lmagan narx, mahsulot yoki ma'lumotni o'zingdan to'qib chiqarma.",
-        "Faqat compose_reply tool orqali javob ber.",
-      ].join("\n");
-  
-  const guardrail =
-    "QATTIQ QOIDA: Sen FAQAT \"" + (config.business.shopName || "Gift Master") + "\" do'koni va uning mahsulotlari haqida gaplashasan. " +
-    "Agar mijoz butunlay aloqasiz, tushunarsiz yoki boshqa sohaga oid (texnik, ilmiy, umumiy bilim va h.k.) narsa so'rasa - " +
-    "O'ZINGNING UMUMIY BILIMINGDAN FOYDALANIB JAVOB BERMA. Faqat: mavzuga aloqasi yo'qligini muloyimlik bilan ayt va sotuvga qaytar. " +
-    "Sen hech qachon do'kon mavzusidan tashqari (masalan texnologiya, sog'liq, umumiy maslahat) ekspert sifatida javob bermaysan.";
-
-  const instructions = factsBlock
-    ? [
-        "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
-        guardrail,
-        "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan:",
-        "--- HOLAT ---",
-        situation,
-        "--- HOLAT TUGADI ---",
-        "MUHIM QOIDA: Mijozga ANIQ NARX/RAQAMLAR ko'rsatiladigan alohida blok BOR - bu blokni SEN YOZMAYSAN, tizim avtomat qo'yadi. Sening vazifang FAQAT ikkita qisqa matn yozish:",
-        "  1) intro - shu narx blokidan OLDIN aytiladigan 1 jumlali kirish (masalan \"Albatta, mana narxlarimiz:\"). Bu yerda HECH QANDAY RAQAM/NARX YOZMA - chunki ular sendan KEYIN avtomat qo'shiladi, sen ularni hali bilmaysan deb hisobla.",
-        "  2) closing - narx blokidan KEYIN aytiladigan qisqa savol/yopilish jumlasi (masalan \"Qaysi biri sizga mos keladi?\"). Bu yerda ham raqam yozma.",
-        addressName ? ("Mijozga murojaat qilishda \"" + addressName + "\" dan foydalan (har xabarda emas, tabiiy joyda).") : "Mijozning ismi hali noma'lum.",
-        scriptNote,
-        "Qisqa va samimiy ohangda yoz.",
-        "Faqat compose_reply_with_facts tool orqali javob ber.",
-      ].join("\n")
-    : [
-        "Sen \"" + (config.business.shopName || "Gift Master") + "\" do'koni uchun Instagram'da mijozlar bilan suhbatlashadigan, juda muloyim va tabiiy gapiruvchi sotuv yordamchisisan.",
-        guardrail,
+        behaviorRules,
         "Quyida JS tizimi tomonidan TAYYORLANGAN holat tasviri berilgan - shu asosida tabiiy javob yoz (faktlarni o'zgartirma, to'qima):",
         "--- HOLAT ---",
         situation,
